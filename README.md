@@ -259,6 +259,15 @@ Results are saved in the `results/` directory with organized subdirectories.
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+The MIT License is a permissive license that allows for:
+- ✅ Commercial use
+- ✅ Modification
+- ✅ Distribution
+- ✅ Private use
+- ✅ Patent use
+
+**Requirements**: The only requirement is that the license and copyright notice be included in all copies or substantial portions of the software.
+
 ## 🏆 Acknowledgments
 
 - **ARFIMA processes**: Granger & Joyeux (1980)
