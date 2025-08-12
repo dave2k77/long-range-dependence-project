@@ -1,0 +1,160 @@
+# Data Configuration for Long-Range Dependence Analysis
+# This file contains settings for data loading, processing, and management
+
+# Data Sources Configuration
+data_sources:
+  # File-based data sources
+  file_formats:
+    - csv
+    - excel
+    - json
+    - txt
+    - parquet
+  
+  # API data sources
+  api_sources:
+    financial:
+      provider: yfinance
+      default_period: 1y
+      default_interval: 1d
+      retry_attempts: 3
+      timeout: 30
+  
+  # Synthetic data generation
+  synthetic:
+    default_length: 1000
+    default_seed: 42
+    noise_levels: [0.1, 0.5, 1.0]
+    hurst_exponents: [0.3, 0.5, 0.7, 0.9]
+
+# Data Processing Configuration
+processing:
+  # Missing value handling
+  missing_values:
+    method: interpolation  # Options: interpolation, forward_fill, backward_fill, drop
+    limit: 5  # Maximum consecutive interpolations
+  
+  # Outlier detection
+  outliers:
+    method: iqr  # Options: iqr, zscore, winsorization
+    threshold: 1.5  # For IQR method
+    z_threshold: 3.0  # For Z-score method
+    winsorize_limits: [0.05, 0.05]  # For winsorization
+  
+  # Data transformation
+  transformation:
+    differencing:
+      max_orders: 3
+      auto_detect: true
+    detrending:
+      method: linear  # Options: linear, polynomial
+      degree: 2  # For polynomial detrending
+    normalization:
+      method: zscore  # Options: zscore, minmax, robust
+    log_transform:
+      apply_if_skewed: true
+      skewness_threshold: 1.0
+  
+  # Stationarity testing
+  stationarity:
+    adf:
+      significance_level: 0.05
+      max_lags: 10
+    kpss:
+      significance_level: 0.05
+      regression: c  # Options: c, ct
+    phillips_perron:
+      significance_level: 0.05
+      max_lags: 10
+
+# Data Quality Assessment
+quality:
+  # Missing value thresholds
+  missing_threshold: 0.1  # Maximum 10% missing values
+  
+  # Outlier thresholds
+  outlier_threshold: 0.05  # Maximum 5% outliers
+  
+  # Distribution checks
+  normality:
+    test: shapiro  # Options: shapiro, anderson, jarque_bera
+    significance_level: 0.05
+  
+  # Time series specific checks
+  time_series:
+    check_regular_intervals: true
+    max_gap_ratio: 0.1  # Maximum gap ratio for irregular intervals
+  
+  # Quality scoring
+  scoring:
+    weights:
+      completeness: 0.3
+      consistency: 0.2
+      accuracy: 0.3
+      timeliness: 0.2
+    minimum_score: 0.7
+
+# Data Storage Configuration
+storage:
+  # Directory structure
+  directories:
+    raw: data/raw
+    processed: data/processed
+    metadata: data/metadata
+    cache: data/cache
+  
+  # File naming conventions
+  naming:
+    synthetic: "{type}_{parameters}_{timestamp}.csv"
+    financial: "financial_{symbol}_{start_date}_{end_date}.csv"
+    processed: "processed_{original_name}_{processing_steps}_{timestamp}.csv"
+    metadata: "{dataset_name}_metadata.json"
+  
+  # Data formats
+  formats:
+    default: csv
+    compression: gzip
+    encoding: utf-8
+  
+  # Metadata
+  metadata:
+    include_processing_history: true
+    include_quality_metrics: true
+    include_data_dictionary: true
+
+# Data Validation
+validation:
+  # Schema validation
+  schema:
+    required_columns: []
+    data_types:
+      timestamp: datetime64[ns]
+      value: float64
+  
+  # Range validation
+  ranges:
+    hurst_exponent: [0.0, 1.0]
+    alpha: [0.0, 2.0]
+    beta: [0.0, 2.0]
+  
+  # Consistency checks
+  consistency:
+    check_monotonicity: true
+    check_positive_values: false
+    check_finite_values: true
+
+# Performance Configuration
+performance:
+  # Chunking for large datasets
+  chunk_size: 10000
+  
+  # Parallel processing
+  parallel:
+    enabled: true
+    max_workers: 4
+  
+  # Caching
+  cache:
+    enabled: true
+    max_size: 100MB
+    ttl: 3600  # 1 hour

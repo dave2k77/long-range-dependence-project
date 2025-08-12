@@ -1,0 +1,390 @@
+# Analysis Configuration for Long-Range Dependence Analysis
+# This file contains settings for all analysis methods
+
+# ARFIMA Analysis Configuration
+arfima:
+  # Model fitting parameters
+  fitting:
+    max_p: 3
+    max_d: 2
+    max_q: 3
+    method: css-mle  # Options: css, css-mle, mle
+    optimizer: lbfgs  # Options: lbfgs, bfgs, powell, cg, newton-cg
+    max_iter: 1000
+    tolerance: 1e-6
+  
+  # Model selection
+  selection:
+    criterion: aic  # Options: aic, bic, hqic
+    auto_select: true
+    allow_fractional_d: true
+  
+  # Diagnostics
+  diagnostics:
+    ljung_box:
+      lags: 10
+      significance_level: 0.05
+    jarque_bera:
+      significance_level: 0.05
+    durbin_watson:
+      significance_level: 0.05
+
+# Detrended Fluctuation Analysis (DFA) Configuration
+dfa:
+  # Scale range configuration
+  scales:
+    min_scale: 10
+    max_scale: null  # Will be set to n//4 if null
+    scale_type: logarithmic  # Options: logarithmic, linear
+    n_scales: 20
+  
+  # Detrending configuration
+  detrending:
+    order: 1  # Polynomial order for detrending
+    method: poly  # Options: poly, linear
+  
+  # Fitting configuration
+  fitting:
+    method: linear  # Options: linear, robust
+    robust_method: huber  # For robust fitting
+    exclude_scales: []  # Scales to exclude from fitting
+  
+  # Quality checks
+  quality:
+    min_r_squared: 0.8
+    min_scales: 5
+    check_linearity: true
+
+# Rescaled Range Analysis (R/S) Configuration
+rs:
+  # Scale range configuration
+  scales:
+    min_scale: 10
+    max_scale: null  # Will be set to n//4 if null
+    scale_type: logarithmic  # Options: logarithmic, linear
+    n_scales: 20
+  
+  # R/S calculation
+  calculation:
+    method: standard  # Options: standard, modified
+    bias_correction: true
+  
+  # Fitting configuration
+  fitting:
+    method: linear  # Options: linear, robust
+    robust_method: huber  # For robust fitting
+    exclude_scales: []  # Scales to exclude from fitting
+  
+  # Quality checks
+  quality:
+    min_r_squared: 0.8
+    min_scales: 5
+    check_linearity: true
+
+# Multifractal Detrended Fluctuation Analysis (MFDFA) Configuration
+mfdfa:
+  # Scale range configuration
+  scales:
+    min_scale: 10
+    max_scale: null  # Will be set to n//4 if null
+    scale_type: logarithmic  # Options: logarithmic, linear
+    n_scales: 20
+  
+  # Moment orders
+  moments:
+    q_min: -5
+    q_max: 5
+    q_step: 0.5
+  
+  # Detrending configuration
+  detrending:
+    order: 1  # Polynomial order for detrending
+    method: poly  # Options: poly, linear
+  
+  # Multifractal spectrum
+  spectrum:
+    calculate_spectrum: true
+    spectrum_method: legendre  # Options: legendre, direct
+  
+  # Quality checks
+  quality:
+    min_r_squared: 0.8
+    min_scales: 5
+    check_convergence: true
+
+# Higuchi Fractal Dimension Analysis Configuration
+higuchi:
+  # k range configuration
+  k_range:
+    k_min: 2  # Minimum k value (time interval)
+    k_max: null  # Maximum k value (None = auto, set to n//4)
+    k_step: 1  # Step size for k values
+  
+  # Optimization settings
+  optimization:
+    enable_k_optimization: true  # Whether to optimize k range for better linearity
+    min_k_values: 5  # Minimum number of k values required
+    target_r_squared: 0.95  # Target R² for k optimization
+  
+  # Regression method
+  regression:
+    method: linear  # Options: linear, robust
+    robust_method: huber  # For robust regression (if sklearn available)
+  
+  # Quality thresholds
+  quality:
+    min_r_squared: 0.8  # Minimum acceptable R²
+    max_std_error: 0.1  # Maximum acceptable standard error
+    min_k_range: 10  # Minimum acceptable k range
+  
+  # Validation settings
+  validation:
+    check_residuals: true  # Whether to check residual normality
+    residual_threshold: 2.0  # Threshold for outlier detection (in std units)
+    enable_warnings: true  # Whether to show warnings for quality issues
+
+# Wavelet Analysis Configuration
+wavelet:
+  # Wavelet type
+  wavelet_type: db4  # Options: db1-db20, sym1-sym20, coif1-coif5, bior1.1-bior6.8
+  
+  # Scale generation
+  scales:
+    min_scale: 2
+    max_scale: null  # Will be set to n//8 if null
+    scale_type: dyadic  # Options: dyadic, logarithmic
+    n_scales: 10
+    min_scales_required: 3
+  
+  # Wavelet Leaders
+  leaders:
+    # Scale range for leaders
+    min_scale: 2
+    max_scale: null  # Will be set to n//8 if null
+    n_scales: 10
+    
+    # Quality checks
+    quality:
+      min_scales: 3
+      min_r_squared: 0.8
+  
+  # Wavelet Whittle
+  whittle:
+    # Frequency range
+    freq_min: 0.01
+    freq_max: 0.5
+    
+    # Optimization
+    optimizer: brent  # Options: brent, golden, bounded
+    tolerance: 1e-6
+    max_iter: 1000
+    
+    # Quality checks
+    quality:
+      min_r_squared: 0.8
+      check_convergence: true
+
+# Spectral Analysis Configuration
+spectral:
+  # Periodogram estimation
+  periodogram:
+    method: welch  # Options: welch, bartlett, blackman_tukey
+    window: hann  # Options: hann, hamming, blackman, boxcar
+    nperseg: null  # Will be set to n//4 if null
+    noverlap: null  # Will be set to nperseg//2 if null
+    nfft: null  # Will be set to next power of 2 of nperseg if null
+  
+  # Whittle Maximum Likelihood Estimation
+  whittle_mle:
+    # Frequency range
+    freq_min: 0.01
+    freq_max: 0.5
+    
+    # Optimization
+    optimizer: brent  # Options: brent, golden, bounded
+    tolerance: 1e-6
+    max_iter: 1000
+    
+    # Initial guess
+    initial_guess:
+      hurst: 0.5
+      alpha: 1.0
+    
+    # Quality checks
+    quality:
+      min_r_squared: 0.8
+      check_convergence: true
+  
+  # Periodogram regression
+  periodogram_regression:
+    # Frequency range
+    freq_min: 0.01
+    freq_max: 0.5
+    
+    # Fitting
+    method: linear  # Options: linear, robust
+    robust_method: huber  # For robust fitting
+    
+    # Quality checks
+    quality:
+      min_r_squared: 0.8
+      min_points: 10
+
+# Fractal Analysis Configuration
+fractal:
+  # General settings
+  general:
+    min_data_length: 100
+    max_data_length: 100000
+    default_seed: 42
+  
+  # Convergence criteria
+  convergence:
+    max_iterations: 1000
+    tolerance: 1e-6
+    relative_tolerance: 1e-4
+  
+  # Bootstrap configuration (for confidence intervals)
+  bootstrap:
+    enabled: false
+    n_bootstrap: 1000
+    confidence_level: 0.95
+    method: percentile  # Options: percentile, bc, bca
+
+# Performance Configuration
+performance:
+  # Parallel processing
+  parallel:
+    enabled: true
+    max_workers: 4
+    backend: multiprocessing  # Options: multiprocessing, threading
+  
+  # Memory management
+  memory:
+    chunk_size: 10000
+    max_memory_usage: 1GB
+  
+  # Caching
+  cache:
+    enabled: true
+    max_size: 500MB
+    ttl: 3600  # 1 hour
+
+# Output Configuration
+output:
+  # Results storage
+  results:
+    save_detailed: true
+    save_summary: true
+    format: json  # Options: json, pickle, hdf5
+  
+  # Plots
+  plots:
+    save_plots: true
+    format: png  # Options: png, pdf, svg
+    dpi: 300
+    style: default  # Options: default, seaborn, ggplot
+  
+  # Logging
+  logging:
+    level: INFO  # Options: DEBUG, INFO, WARNING, ERROR
+    save_logs: true
+    log_file: analysis.log
+
+# Validation Configuration
+validation:
+  # Input validation
+  input:
+    check_data_type: true
+    check_data_length: true
+    check_missing_values: true
+    check_infinite_values: true
+  
+  # Output validation
+  output:
+    check_hurst_range: true
+    check_alpha_range: true
+    check_convergence: true
+    check_quality_metrics: true
+  
+  # Cross-validation
+  cross_validation:
+    enabled: false
+    n_folds: 5
+    method: time_series_split  # Options: time_series_split, kfold
+
+# Statistical Validation Configuration
+statistical_validation:
+  # Hypothesis testing
+  hypothesis_testing:
+    enabled: true
+    default_alpha: 0.05
+    default_h0_hurst: 0.5
+    default_alternative: greater  # Options: greater, less, two-sided
+    methods: [dfa, rs, wavelet, spectral]
+  
+  # Bootstrap analysis
+  bootstrap:
+    enabled: true
+    default_n_bootstrap: 1000
+    default_confidence_level: 0.95
+    default_block_size: null  # null for iid bootstrap, int for block bootstrap
+    methods: [dfa, rs, wavelet, spectral]
+  
+  # Monte Carlo significance tests
+  monte_carlo:
+    enabled: true
+    default_n_simulations: 1000
+    default_alpha: 0.05
+    null_models: [iid, ar1, ma1]
+    methods: [dfa, rs, wavelet, spectral]
+  
+  # Cross-validation
+  cross_validation:
+    enabled: true
+    default_n_folds: 5
+    default_test_size: 0.2
+    methods: [dfa, rs, wavelet, spectral]
+  
+  # Robustness testing
+  robustness:
+    enabled: true
+    parameter_ranges:
+      dfa:
+        order: [1, 2, 3]
+        min_scale: [4, 8, 16]
+      rs:
+        min_scale: [4, 8, 16]
+        num_scales: [10, 20, 30]
+      wavelet:
+        wavelet: [morlet, haar]
+        min_scale: [4, 8, 16]
+      spectral:
+        method: [whittle, periodogram]
+        freq_range: [null, [0.01, 0.1], [0.01, 0.2]]
+  
+  # Comprehensive validation
+  comprehensive:
+    enabled: true
+    default_methods: [dfa, rs, wavelet, spectral]
+    default_alpha: 0.05
+    default_n_bootstrap: 1000
+    default_n_simulations: 1000
+    save_individual_results: true
+    save_comprehensive_report: true
+  
+  # Visualization
+  visualization:
+    enabled: true
+    save_plots: true
+    plot_format: png  # Options: png, pdf, svg
+    plot_dpi: 300
+    default_figsize: [12, 8]
+    comprehensive_figsize: [16, 12]
+  
+  # Performance
+  performance:
+    parallel_processing: false  # Enable for large datasets
+    max_workers: 4
+    chunk_size: 1000
+    timeout: 300  # seconds

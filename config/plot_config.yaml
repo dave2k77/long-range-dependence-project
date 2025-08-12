@@ -1,0 +1,326 @@
+# Plotting Configuration for Long-Range Dependence Analysis
+# This file contains settings for all visualization aspects
+
+# General Plot Settings
+general:
+  # Style configuration
+  style: seaborn-v0_8  # Options: default, seaborn-v0_8, ggplot, fivethirtyeight
+  context: paper  # Options: paper, notebook, talk, poster
+  
+  # Figure settings
+  figure:
+    dpi: 300
+    format: png  # Options: png, pdf, svg, jpg
+    bbox_inches: tight
+    facecolor: white
+    edgecolor: black
+  
+  # Font settings
+  font:
+    family: serif  # Options: serif, sans-serif, monospace
+    size: 12
+    weight: normal  # Options: normal, bold, light
+    math_font: cm  # Options: cm, stix, dejavusans
+  
+  # Color palette
+  colors:
+    primary: '#1f77b4'  # Blue
+    secondary: '#ff7f0e'  # Orange
+    tertiary: '#2ca02c'  # Green
+    quaternary: '#d62728'  # Red
+    quinary: '#9467bd'  # Purple
+    senary: '#8c564b'  # Brown
+    septenary: '#e377c2'  # Pink
+    octonary: '#7f7f7f'  # Gray
+    nonary: '#bcbd22'  # Olive
+    denary: '#17becf'  # Cyan
+  
+  # Grid settings
+  grid:
+    alpha: 0.3
+    linestyle: '-'
+    linewidth: 0.5
+    color: gray
+
+# Time Series Plot Configuration
+time_series:
+  # Basic time series plot
+  basic:
+    figsize: [12, 6]
+    linewidth: 1.0
+    alpha: 0.8
+    markersize: 3
+    
+  # Multiple time series
+  multiple:
+    figsize: [14, 8]
+    subplot_layout: [2, 2]  # [rows, cols]
+    share_x: true
+    share_y: false
+    
+  # Data quality plots
+  quality:
+    figsize: [15, 10]
+    subplot_layout: [3, 2]
+    colors:
+      missing: '#ff9999'
+      outliers: '#ffcc00'
+      normal: '#66cc66'
+
+# Fractal Analysis Plot Configuration
+fractal:
+  # DFA plots
+  dfa:
+    figsize: [12, 8]
+    subplot_layout: [2, 2]
+    scales:
+      color: '#1f77b4'
+      marker: 'o'
+      markersize: 6
+    fitting:
+      color: '#ff7f0e'
+      linewidth: 2
+      linestyle: '--'
+    
+  # R/S plots
+  rs:
+    figsize: [12, 8]
+    subplot_layout: [2, 2]
+    scales:
+      color: '#2ca02c'
+      marker: 's'
+      markersize: 6
+    fitting:
+      color: '#d62728'
+      linewidth: 2
+      linestyle: '--'
+    
+  # MFDFA plots
+  mfdfa:
+    figsize: [15, 10]
+    subplot_layout: [2, 3]
+    moments:
+      colors: ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd']
+      markers: ['o', 's', '^', 'D', 'v']
+      markersize: 5
+    spectrum:
+      color: '#1f77b4'
+      linewidth: 2
+      fill_alpha: 0.3
+
+# Wavelet Analysis Plot Configuration
+wavelet:
+  # Wavelet coefficients
+  coefficients:
+    figsize: [14, 8]
+    cmap: RdYlBu_r  # Options: RdYlBu_r, viridis, plasma, coolwarm
+    aspect: auto
+    interpolation: nearest
+    
+  # Wavelet leaders
+  leaders:
+    figsize: [12, 8]
+    subplot_layout: [2, 2]
+    scales:
+      color: '#1f77b4'
+      marker: 'o'
+      markersize: 6
+    fitting:
+      color: '#ff7f0e'
+      linewidth: 2
+      linestyle: '--'
+    
+  # Wavelet whittle
+  whittle:
+    figsize: [12, 8]
+    subplot_layout: [2, 2]
+    periodogram:
+      color: '#1f77b4'
+      alpha: 0.7
+    fitting:
+      color: '#ff7f0e'
+      linewidth: 2
+      linestyle: '--'
+
+# Spectral Analysis Plot Configuration
+spectral:
+  # Periodogram
+  periodogram:
+    figsize: [12, 6]
+    color: '#1f77b4'
+    alpha: 0.7
+    linewidth: 1.0
+    
+  # Whittle MLE
+  whittle_mle:
+    figsize: [12, 8]
+    subplot_layout: [2, 2]
+    periodogram:
+      color: '#1f77b4'
+      alpha: 0.7
+    fitting:
+      color: '#ff7f0e'
+      linewidth: 2
+      linestyle: '--'
+    
+  # Periodogram regression
+  periodogram_regression:
+    figsize: [12, 6]
+    data:
+      color: '#1f77b4'
+      alpha: 0.7
+      marker: 'o'
+      markersize: 4
+    fitting:
+      color: '#ff7f0e'
+      linewidth: 2
+      linestyle: '--'
+
+# Results Visualization Configuration
+results:
+  # Summary table
+  summary_table:
+    figsize: [14, 8]
+    fontsize: 10
+    cell_padding: 0.1
+    header_color: '#f0f0f0'
+    alternate_row_color: '#f9f9f9'
+    
+  # Comparison plots
+  comparison:
+    figsize: [15, 10]
+    subplot_layout: [3, 2]
+    methods:
+      colors: ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd']
+      markers: ['o', 's', '^', 'D', 'v']
+      markersize: 6
+    
+  # Correlation matrix
+  correlation:
+    figsize: [10, 8]
+    cmap: RdYlBu_r
+    annot: true
+    fmt: '.2f'
+    square: true
+    
+  # Bland-Altman plot
+  bland_altman:
+    figsize: [10, 8]
+    data:
+      color: '#1f77b4'
+      alpha: 0.7
+      marker: 'o'
+      markersize: 4
+    mean_line:
+      color: '#ff7f0e'
+      linewidth: 2
+      linestyle: '--'
+    limits:
+      color: '#d62728'
+      linewidth: 1
+      linestyle: ':'
+
+# Layout Configuration
+layout:
+  # Subplot spacing
+  subplot:
+    hspace: 0.3
+    wspace: 0.3
+    left: 0.1
+    right: 0.95
+    top: 0.95
+    bottom: 0.1
+    
+  # Legend
+  legend:
+    loc: best  # Options: best, upper right, upper left, lower left, lower right
+    bbox_to_anchor: null
+    ncol: 1
+    fontsize: 10
+    frameon: true
+    fancybox: true
+    shadow: false
+    
+  # Title
+  title:
+    fontsize: 14
+    fontweight: bold
+    pad: 20
+    
+  # Axis labels
+  axis_labels:
+    fontsize: 12
+    fontweight: normal
+    
+  # Tick labels
+  tick_labels:
+    fontsize: 10
+    rotation: 0
+
+# Output Configuration
+output:
+  # Save settings
+  save:
+    enabled: true
+    directory: results/figures
+    filename_format: "{plot_type}_{timestamp}.{format}"
+    timestamp_format: "%Y%m%d_%H%M%S"
+    
+  # Display settings
+  display:
+    show_plots: true
+    block: false
+    close_after_save: true
+    
+  # Quality settings
+  quality:
+    dpi: 300
+    bbox_inches: tight
+    pad_inches: 0.1
+    transparent: false
+
+# Animation Configuration (for future use)
+animation:
+  # Basic animation settings
+  basic:
+    interval: 200  # milliseconds
+    repeat: true
+    blit: false
+    
+  # Save animation
+  save:
+    format: gif  # Options: gif, mp4, avi
+    fps: 10
+    dpi: 100
+    writer: pillow  # Options: pillow, ffmpeg, imagemagick
+
+# Interactive Configuration (for future use)
+interactive:
+  # Backend
+  backend: matplotlib  # Options: matplotlib, plotly, bokeh
+  
+  # Plotly settings (if using plotly)
+  plotly:
+    theme: plotly_white
+    show_legend: true
+    hover_mode: closest
+    
+  # Bokeh settings (if using bokeh)
+  bokeh:
+    theme: light_minimal
+    tools: pan,box_zoom,wheel_zoom,reset,save
+    toolbar_location: above
+
+# Accessibility Configuration
+accessibility:
+  # Color blind friendly
+  colorblind_friendly: true
+  colorblind_palette: colorblind10  # Options: colorblind10, viridis, plasma
+  
+  # High contrast
+  high_contrast: false
+  high_contrast_colors: ['black', 'white', 'red', 'blue']
+  
+  # Font size
+  large_fonts: false
+  large_font_scale: 1.5

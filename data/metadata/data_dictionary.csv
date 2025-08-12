@@ -1,0 +1,21 @@
+name,type,file_path,rows,columns,data_type,description,created_at,parameters
+arfima_lrd,raw,data\raw\arfima_lrd.csv,1000,2,fractional_noise,Synthetic fractional_noise data with parameters {'d': 0.3},2025-08-12T18:55:40.416210,{'d': 0.3}
+arfima_srd,raw,data\raw\arfima_srd.csv,1000,2,fractional_noise,Synthetic fractional_noise data with parameters {'d': 0.1},2025-08-12T18:55:40.433535,{'d': 0.1}
+financial_AAPL,raw,data\raw\financial_AAPL.csv,251,8,financial,Financial data for AAPL,2025-08-12T18:55:42.151287,"{'symbol': 'AAPL', 'start_date': '2020-01-01', 'end_date': None}"
+financial_AMZN,raw,data\raw\financial_AMZN.csv,251,8,financial,Financial data for AMZN,2025-08-12T18:55:42.893344,"{'symbol': 'AMZN', 'start_date': '2020-01-01', 'end_date': None}"
+financial_GOOGL,raw,data\raw\financial_GOOGL.csv,251,8,financial,Financial data for GOOGL,2025-08-12T18:55:42.360426,"{'symbol': 'GOOGL', 'start_date': '2020-01-01', 'end_date': None}"
+financial_MSFT,raw,data\raw\financial_MSFT.csv,251,8,financial,Financial data for MSFT,2025-08-12T18:55:42.583160,"{'symbol': 'MSFT', 'start_date': '2020-01-01', 'end_date': None}"
+financial_NVDA,raw,data\raw\financial_NVDA.csv,251,8,financial,Financial data for NVDA,2025-08-12T18:55:43.070729,"{'symbol': 'NVDA', 'start_date': '2020-01-01', 'end_date': None}"
+financial_TSLA,raw,data\raw\financial_TSLA.csv,251,8,financial,Financial data for TSLA,2025-08-12T18:55:42.743098,"{'symbol': 'TSLA', 'start_date': '2020-01-01', 'end_date': None}"
+fractional_noise_d03,raw,data\raw\fractional_noise_d03.csv,1000,2,fractional_noise,Synthetic fractional_noise data with parameters {'d': 0.3},2025-08-12T18:55:40.337398,{'d': 0.3}
+fractional_noise_d05,raw,data\raw\fractional_noise_d05.csv,1000,2,fractional_noise,Synthetic fractional_noise data with parameters {'d': 0.5},2025-08-12T18:55:40.355029,{'d': 0.5}
+random_walk,raw,data\raw\random_walk.csv,1000,2,random_walk,Synthetic random_walk data with parameters {},2025-08-12T18:55:40.367307,{}
+seasonal_data,raw,data\raw\seasonal_data.csv,1000,2,seasonal,"Synthetic seasonal data with parameters {'amplitude': 0.5, 'frequency': 100, 'noise': 0.1}",2025-08-12T18:55:40.400261,"{'amplitude': 0.5, 'frequency': 100, 'noise': 0.1}"
+trend_data,raw,data\raw\trend_data.csv,1000,2,trend,"Synthetic trend data with parameters {'trend': 0.01, 'noise': 0.1}",2025-08-12T18:55:40.388340,"{'trend': 0.01, 'noise': 0.1}"
+white_noise,raw,data\raw\white_noise.csv,1000,2,white_noise,Synthetic white_noise data with parameters {},2025-08-12T18:55:40.377118,{}
+processed_financial_AAPL_20250812_185542,processed,data\processed\processed_financial_AAPL_20250812_185542.csv,250,2,processed,Processed version of financial_AAPL,2025-08-12T18:55:42.182106,"{'cleaning_method': 'interpolation', 'stationarity_method': 'returns', 'remove_outliers': True}"
+processed_financial_AMZN_20250812_185542,processed,data\processed\processed_financial_AMZN_20250812_185542.csv,250,2,processed,Processed version of financial_AMZN,2025-08-12T18:55:42.922093,"{'cleaning_method': 'interpolation', 'stationarity_method': 'returns', 'remove_outliers': True}"
+processed_financial_GOOGL_20250812_185542,processed,data\processed\processed_financial_GOOGL_20250812_185542.csv,250,2,processed,Processed version of financial_GOOGL,2025-08-12T18:55:42.382672,"{'cleaning_method': 'interpolation', 'stationarity_method': 'returns', 'remove_outliers': True}"
+processed_financial_MSFT_20250812_185542,processed,data\processed\processed_financial_MSFT_20250812_185542.csv,250,2,processed,Processed version of financial_MSFT,2025-08-12T18:55:42.619704,"{'cleaning_method': 'interpolation', 'stationarity_method': 'returns', 'remove_outliers': True}"
+processed_financial_NVDA_20250812_185543,processed,data\processed\processed_financial_NVDA_20250812_185543.csv,250,2,processed,Processed version of financial_NVDA,2025-08-12T18:55:43.097731,"{'cleaning_method': 'interpolation', 'stationarity_method': 'returns', 'remove_outliers': True}"
+processed_financial_TSLA_20250812_185542,processed,data\processed\processed_financial_TSLA_20250812_185542.csv,250,2,processed,Processed version of financial_TSLA,2025-08-12T18:55:42.769449,"{'cleaning_method': 'interpolation', 'stationarity_method': 'returns', 'remove_outliers': True}"
