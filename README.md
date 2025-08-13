@@ -40,6 +40,13 @@ This project provides a complete toolkit for long-range dependence (LRD) analysi
 - **Integration Testing**: Full analysis pipeline integration
 - **Registry Management**: Centralized model and dataset registry
 
+### Development & CI/CD
+- **Continuous Integration**: Automated testing with GitHub Actions
+- **Code Quality**: Linting, formatting, and type checking
+- **Security**: Automated vulnerability scanning
+- **Containerization**: Docker support for development and deployment
+- **Pre-commit Hooks**: Automated code quality enforcement
+
 ## 📁 Project Structure
 
 ```
@@ -320,12 +327,76 @@ For detailed information, see the [Submission System Tutorial](tutorials/06_subm
 
 Results are saved in the `results/` directory with organized subdirectories.
 
+## 🚀 Development & CI/CD
+
+### Quick Start
+
+```bash
+# Install development dependencies
+pip install -e ".[dev]"
+
+# Install pre-commit hooks
+pre-commit install
+
+# Run all CI checks locally
+make ci
+```
+
+### Available Commands
+
+```bash
+# Testing
+make test              # Run all tests
+make test-cov          # Run tests with coverage
+make test-fast         # Run fast tests only
+
+# Code Quality
+make lint              # Run linting
+make format            # Format code
+make type-check        # Run type checking
+make security          # Run security checks
+
+# Development
+make install-dev       # Install development dependencies
+make clean             # Clean generated files
+make docs              # Build documentation
+```
+
+### Docker Development
+
+```bash
+# Start all services
+docker-compose up -d
+
+# Run tests in container
+docker-compose run test
+
+# Start development shell
+docker-compose run dev
+
+# Start Jupyter notebook
+docker-compose up jupyter
+```
+
+### CI/CD Pipeline
+
+The project uses GitHub Actions for automated:
+
+- **Multi-Python Testing**: Python 3.8, 3.9, 3.10, 3.11
+- **Code Quality**: Linting, formatting, type checking
+- **Security**: Vulnerability scanning
+- **Coverage**: Test coverage reporting
+- **Documentation**: Automated docs building
+
+For detailed CI/CD information, see [CI/CD Guide](docs/ci_cd_guide.md).
+
 ## 📚 Documentation
 
 - `docs/synthetic_data_generation.md`: Synthetic data generation guide
 - `docs/methodology.md`: Analysis method descriptions
 - `docs/api_documentation.md`: API reference
 - `docs/analysis_protocol.md`: Analysis workflow documentation
+- `docs/ci_cd_guide.md`: CI/CD and development guide
 
 ## 🤝 Contributing
 

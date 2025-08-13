@@ -1,0 +1,145 @@
+version: '3.8'
+
+services:
+  # Main application service
+  app:
+    build: .
+    container_name: lrd-project-app
+    volumes:
+      - .:/app
+      - ./data:/app/data
+      - ./results:/app/results
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "8000:8000"
+    command: python scripts/run_full_analysis.py
+    depends_on:
+      - redis
+    networks:
+      - lrd-network
+
+  # Redis for caching and job queue (if needed)
+  redis:
+    image: redis:7-alpine
+    container_name: lrd-project-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - lrd-network
+
+  # Jupyter notebook for interactive development
+  jupyter:
+    build: .
+    container_name: lrd-project-jupyter
+    volumes:
+      - .:/app
+      - ./data:/app/data
+      - ./results:/app/results
+      - ./notebooks:/app/notebooks
+    environment:
+      - PYTHONPATH=/app
+      - JUPYTER_ENABLE_LAB=yes
+    ports:
+      - "8888:8888"
+    command: jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token=''
+    depends_on:
+      - redis
+    networks:
+      - lrd-network
+
+  # Testing service
+  test:
+    build: .
+    container_name: lrd-project-test
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+    command: pytest tests/ -v --cov=src --cov-report=html --cov-report=term-missing
+    networks:
+      - lrd-network
+
+  # Linting and code quality service
+  lint:
+    build: .
+    container_name: lrd-project-lint
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONPATH=/app
+    command: |
+      sh -c "
+        flake8 src/ tests/ scripts/ --count --select=E9,F63,F7,F82 --show-source --statistics &&
+        flake8 src/ tests/ scripts/ --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics &&
+        black --check src/ tests/ scripts/ &&
+        isort --check-only src/ tests/ scripts/ &&
+        mypy src/ --ignore-missing-imports
+      "
+    networks:
+      - lrd-network
+
+  # Security scanning service
+  security:
+    build: .
+    container_name: lrd-project-security
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONPATH=/app
+    command: |
+      sh -c "
+        bandit -r src/ -f json -o bandit-report.json &&
+        safety check --json --output safety-report.json
+      "
+    networks:
+      - lrd-network
+
+  # Documentation service
+  docs:
+    build: .
+    container_name: lrd-project-docs
+    volumes:
+      - .:/app
+      - ./docs/_build:/app/docs/_build
+    environment:
+      - PYTHONPATH=/app
+    command: |
+      sh -c "
+        pip install sphinx sphinx-rtd-theme myst-parser &&
+        cd docs && make html
+      "
+    networks:
+      - lrd-network
+
+  # Development shell
+  dev:
+    build: .
+    container_name: lrd-project-dev
+    volumes:
+      - .:/app
+      - ./data:/app/data
+      - ./results:/app/results
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "8000:8000"
+    stdin_open: true
+    tty: true
+    command: /bin/bash
+    depends_on:
+      - redis
+    networks:
+      - lrd-network
+
+volumes:
+  redis_data:
+
+networks:
+  lrd-network:
+    driver: bridge
