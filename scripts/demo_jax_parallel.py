@@ -24,23 +24,31 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+# Add src to path - ensure it's added correctly
+src_path = str(Path(__file__).parent.parent / "src")
+if src_path not in sys.path:
+    sys.path.insert(0, src_path)
 
-from analysis.jax_parallel_analysis import (
-    JAXAnalysisConfig, 
-    JAXParallelProcessor, 
-    jax_parallel_analysis, 
-    jax_monte_carlo_analysis,
-    create_jax_config
-)
-from submission.jax_model_submission import (
-    JAXDFAModel, 
-    JAXHiguchiModel, 
-    JAXModelSubmission,
-    create_jax_model_metadata
-)
-from data_processing.synthetic_generator import SyntheticDataGenerator
+try:
+    from analysis.jax_parallel_analysis import (
+        JAXAnalysisConfig, 
+        JAXParallelProcessor, 
+        jax_parallel_analysis, 
+        jax_monte_carlo_analysis,
+        create_jax_config
+    )
+    from submission.jax_model_submission import (
+        JAXDFAModel, 
+        JAXHiguchiModel, 
+        JAXModelSubmission,
+        create_jax_model_metadata
+    )
+    from data_processing.synthetic_generator import SyntheticDataGenerator
+except ImportError as e:
+    print(f"Import error: {e}")
+    print(f"Current sys.path: {sys.path}")
+    print(f"Looking for module in: {src_path}")
+    raise
 
 
 def generate_test_datasets(n_datasets: int = 10, length: int = 1000) -> dict:
