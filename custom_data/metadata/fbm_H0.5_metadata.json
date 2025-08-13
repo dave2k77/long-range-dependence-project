@@ -1,0 +1,20 @@
+{
+  "name": "fbm_H0.5",
+  "data_type": "synthetic",
+  "description": "Synthetic fbm_H0.5 signal",
+  "parameters": {
+    "n": 1000,
+    "type": "clean"
+  },
+  "created_at": "2025-08-13T19:24:20.596082",
+  "shape": [
+    1000,
+    2
+  ],
+  "columns": [
+    "time",
+    "value"
+  ],
+  "index_type": "<class 'pandas.core.indexes.range.RangeIndex'>",
+  "file_path": "custom_data\\raw\\fbm_H0.5.csv"
+}

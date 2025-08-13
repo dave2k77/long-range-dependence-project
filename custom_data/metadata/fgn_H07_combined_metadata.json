@@ -1,0 +1,20 @@
+{
+  "name": "fgn_H07_combined",
+  "data_type": "synthetic",
+  "description": "Synthetic fgn_H07_combined signal",
+  "parameters": {
+    "n": 1000,
+    "type": "contaminated"
+  },
+  "created_at": "2025-08-13T19:24:20.716383",
+  "shape": [
+    1000,
+    2
+  ],
+  "columns": [
+    "time",
+    "value"
+  ],
+  "index_type": "<class 'pandas.core.indexes.range.RangeIndex'>",
+  "file_path": "custom_data\\raw\\fgn_H07_combined.csv"
+}

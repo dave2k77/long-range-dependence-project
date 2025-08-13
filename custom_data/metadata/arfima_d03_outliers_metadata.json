@@ -1,0 +1,20 @@
+{
+  "name": "arfima_d03_outliers",
+  "data_type": "synthetic",
+  "description": "Synthetic arfima_d03_outliers signal",
+  "parameters": {
+    "n": 1000,
+    "type": "contaminated"
+  },
+  "created_at": "2025-08-13T19:24:20.641573",
+  "shape": [
+    1000,
+    2
+  ],
+  "columns": [
+    "time",
+    "value"
+  ],
+  "index_type": "<class 'pandas.core.indexes.range.RangeIndex'>",
+  "file_path": "custom_data\\raw\\arfima_d03_outliers.csv"
+}

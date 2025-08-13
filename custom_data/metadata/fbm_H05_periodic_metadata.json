@@ -1,0 +1,20 @@
+{
+  "name": "fbm_H05_periodic",
+  "data_type": "synthetic",
+  "description": "Synthetic fbm_H05_periodic signal",
+  "parameters": {
+    "n": 1000,
+    "type": "contaminated"
+  },
+  "created_at": "2025-08-13T19:24:20.661450",
+  "shape": [
+    1000,
+    2
+  ],
+  "columns": [
+    "time",
+    "value"
+  ],
+  "index_type": "<class 'pandas.core.indexes.range.RangeIndex'>",
+  "file_path": "custom_data\\raw\\fbm_H05_periodic.csv"
+}
