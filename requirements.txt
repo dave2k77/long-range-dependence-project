@@ -10,6 +10,11 @@ requests>=2.25.0
 yfinance>=0.1.70
 PyYAML>=6.0
 
+# GUI dependencies
+tkinter-tooltip>=2.0.0
+ttkthemes>=3.2.0
+pillow>=8.0.0
+
 # Testing dependencies
 pytest>=6.0.0
 pytest-cov>=2.12.0

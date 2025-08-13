@@ -12,6 +12,26 @@
       "doc_path": null,
       "submission_date": null,
       "status": "pending"
+    },
+    "DemoVarianceTimeEstimator_1.0.0": {
+      "name": "DemoVarianceTimeEstimator",
+      "version": "1.0.0",
+      "author": "Demo User",
+      "description": "A simple variance-time plot based estimator for demonstration purposes",
+      "algorithm_type": "custom",
+      "parameters": {
+        "min_scale": 4,
+        "max_scale": 256,
+        "scale_type": "logarithmic"
+      },
+      "dependencies": [
+        "numpy",
+        "pandas"
+      ],
+      "file_path": "models\\demo_estimator_model.py",
+      "doc_path": null,
+      "submission_date": null,
+      "status": "pending"
     }
   },
   "metadata": {

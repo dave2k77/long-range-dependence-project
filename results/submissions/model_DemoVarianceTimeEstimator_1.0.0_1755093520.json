@@ -1,0 +1,10 @@
+{
+  "submission_id": "model_DemoVarianceTimeEstimator_1.0.0_1755093520",
+  "submission_type": "model",
+  "status": "rejected",
+  "success": false,
+  "message": "Model failed integration testing",
+  "validation_results": [
+    {
+      "is_valid": true,
+      "status": 

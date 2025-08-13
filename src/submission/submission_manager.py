@@ -545,9 +545,45 @@ class SubmissionManager:
         """Save submission result to file"""
         result_file = self.results_dir / f"{result.submission_id}.json"
         
-        # Convert to dict for JSON serialization
-        result_dict = asdict(result)
-        result_dict["status"] = result.status.value
+        # Convert to dict for JSON serialization with proper enum handling
+        def convert_to_serializable(obj):
+            if isinstance(obj, (np.integer, np.floating)):
+                return float(obj)
+            elif isinstance(obj, np.ndarray):
+                return obj.tolist()
+            elif isinstance(obj, (bool, np.bool_)):
+                return bool(obj)
+            elif isinstance(obj, dict):
+                return {k: convert_to_serializable(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [convert_to_serializable(item) for item in obj]
+            else:
+                return obj
+        
+        result_dict = {
+            "submission_id": result.submission_id,
+            "submission_type": result.submission_type,
+            "status": result.status.value,
+            "success": result.success,
+            "message": result.message,
+            "validation_results": [
+                {
+                    "is_valid": vr.is_valid,
+                    "status": vr.status.value,
+                    "errors": vr.errors,
+                    "warnings": vr.warnings,
+                    "details": convert_to_serializable(vr.details),
+                    "score": vr.score
+                }
+                for vr in result.validation_results
+            ],
+            "test_results": convert_to_serializable(result.test_results),
+            "performance_metrics": convert_to_serializable(result.performance_metrics),
+            "integration_results": convert_to_serializable(result.integration_results),
+            "submission_date": result.submission_date,
+            "processing_time": result.processing_time,
+            "errors": result.errors
+        }
         
         with open(result_file, 'w') as f:
             json.dump(result_dict, f, indent=2)

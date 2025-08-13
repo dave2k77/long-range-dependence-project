@@ -123,7 +123,10 @@ def create_demo_model_file():
     """Create a demo model file"""
     model_code = '''
 import numpy as np
-from src.submission.model_submission import BaseEstimatorModel
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
+from submission.model_submission import BaseEstimatorModel
 
 class DemoEstimatorModel(BaseEstimatorModel):
     """Example estimator model for demonstration"""
@@ -286,7 +289,7 @@ def demo_model_submission():
         version="1.0.0",
         author="Demo User",
         description="A simple variance-time plot based estimator for demonstration purposes",
-        category="custom",
+        algorithm_type="custom",
         parameters={
             "min_scale": 4,
             "max_scale": 256,
@@ -308,12 +311,21 @@ def demo_model_submission():
     print(f"Status: {result.status.value}")
     print(f"Success: {result.success}")
     print(f"Message: {result.message}")
-    print(f"Processing time: {result.processing_time:.2f} seconds")
+    if result.processing_time is not None:
+        print(f"Processing time: {result.processing_time:.2f} seconds")
+    else:
+        print("Processing time: N/A")
     
     if result.validation_results:
         print("\nValidation Results:")
         for i, validation in enumerate(result.validation_results):
-            print(f"  {i+1}. {validation.message} ({'PASSED' if validation.passed else 'FAILED'})")
+            status = "PASSED" if validation.is_valid else "FAILED"
+            if validation.errors:
+                print(f"  {i+1}. FAILED - Errors: {validation.errors}")
+            elif validation.warnings:
+                print(f"  {i+1}. PASSED with warnings: {validation.warnings}")
+            else:
+                print(f"  {i+1}. {status}")
     
     if result.performance_metrics:
         print("\nPerformance Metrics:")
@@ -337,12 +349,14 @@ def demo_dataset_submission():
         version="1.0.0",
         author="Demo User",
         description="Synthetic fractional Brownian motion data for demonstration",
-        category="synthetic",
         source="Generated",
+        format="csv",
+        size=1000,
+        columns=["timestamp", "value"],
+        file_path=dataset_file,
         sampling_frequency="1 hour",
         units="arbitrary",
-        collection_date="2024-01-01",
-        file_path=dataset_file
+        collection_date="2024-01-01"
     )
     
     # Submit dataset
@@ -357,12 +371,21 @@ def demo_dataset_submission():
     print(f"Status: {result.status.value}")
     print(f"Success: {result.success}")
     print(f"Message: {result.message}")
-    print(f"Processing time: {result.processing_time:.2f} seconds")
+    if result.processing_time is not None:
+        print(f"Processing time: {result.processing_time:.2f} seconds")
+    else:
+        print("Processing time: N/A")
     
     if result.validation_results:
         print("\nValidation Results:")
         for i, validation in enumerate(result.validation_results):
-            print(f"  {i+1}. {validation.message} ({'PASSED' if validation.passed else 'FAILED'})")
+            status = "PASSED" if validation.is_valid else "FAILED"
+            if validation.errors:
+                print(f"  {i+1}. FAILED - Errors: {validation.errors}")
+            elif validation.warnings:
+                print(f"  {i+1}. PASSED with warnings: {validation.warnings}")
+            else:
+                print(f"  {i+1}. {status}")
     
     if result.performance_metrics:
         print("\nQuality Evaluation:")

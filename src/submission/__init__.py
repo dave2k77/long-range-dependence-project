@@ -9,14 +9,17 @@ from .model_submission import (
     ModelSubmission,
     ModelValidator,
     ModelTester,
-    ModelRegistry
+    ModelRegistry,
+    ModelMetadata,
+    BaseEstimatorModel
 )
 
 from .dataset_submission import (
     DatasetSubmission,
     DatasetValidator,
     DatasetTester,
-    DatasetRegistry
+    DatasetRegistry,
+    DatasetMetadata
 )
 
 from .submission_manager import (
@@ -39,12 +42,15 @@ __all__ = [
     'ModelValidator',
     'ModelTester',
     'ModelRegistry',
+    'ModelMetadata',
+    'BaseEstimatorModel',
     
     # Dataset Submission
     'DatasetSubmission',
     'DatasetValidator',
     'DatasetTester',
     'DatasetRegistry',
+    'DatasetMetadata',
     
     # Submission Management
     'SubmissionManager',

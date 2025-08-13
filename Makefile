@@ -96,6 +96,9 @@ run-demo:
 run-analysis:
 	python scripts/run_full_analysis.py
 
+run-gui:
+	python scripts/run_gui.py
+
 # Docker (if needed)
 docker-build:
 	docker build -t lrd-project .

@@ -31,6 +31,9 @@ class DatasetMetadata:
     size: int  # number of rows
     columns: List[str]
     file_path: str
+    sampling_frequency: Optional[str] = None
+    units: Optional[str] = None
+    collection_date: Optional[str] = None
     metadata_file: Optional[str] = None
     quality_report: Optional[str] = None
     submission_date: Optional[str] = None
@@ -427,7 +430,27 @@ class DatasetRegistry:
         if dataset_id in self.registry["datasets"]:
             return False  # Dataset already exists
         
-        self.registry["datasets"][dataset_id] = asdict(metadata)
+        # Convert to dict for JSON serialization
+        metadata_dict = {
+            "name": metadata.name,
+            "version": metadata.version,
+            "author": metadata.author,
+            "description": metadata.description,
+            "source": metadata.source,
+            "format": metadata.format,
+            "size": metadata.size,
+            "columns": metadata.columns,
+            "file_path": metadata.file_path,
+            "sampling_frequency": metadata.sampling_frequency,
+            "units": metadata.units,
+            "collection_date": metadata.collection_date,
+            "metadata_file": metadata.metadata_file,
+            "quality_report": metadata.quality_report,
+            "submission_date": metadata.submission_date,
+            "status": metadata.status
+        }
+        
+        self.registry["datasets"][dataset_id] = metadata_dict
         self._save_registry()
         return True
     
@@ -543,8 +566,26 @@ class DatasetSubmission:
             
             # Step 7: Save quality report
             quality_report_path = datasets_dir / f"{metadata.name}_{metadata.version}_quality.json"
+            
+            # Convert quality report to JSON-serializable format
+            def convert_to_serializable(obj):
+                if isinstance(obj, (np.integer, np.floating)):
+                    return float(obj)
+                elif isinstance(obj, np.ndarray):
+                    return obj.tolist()
+                elif isinstance(obj, (bool, np.bool_)):
+                    return bool(obj)
+                elif isinstance(obj, dict):
+                    return {k: convert_to_serializable(v) for k, v in obj.items()}
+                elif isinstance(obj, list):
+                    return [convert_to_serializable(item) for item in obj]
+                else:
+                    return obj
+            
+            serializable_quality_report = convert_to_serializable(quality_report)
+            
             with open(quality_report_path, 'w') as f:
-                json.dump(quality_report, f, indent=2)
+                json.dump(serializable_quality_report, f, indent=2)
             
             # Step 8: Update metadata
             metadata.file_path = str(new_file_path)

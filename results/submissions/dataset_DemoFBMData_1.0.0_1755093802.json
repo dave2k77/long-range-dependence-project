@@ -1,0 +1,123 @@
+{
+  "submission_id": "dataset_DemoFBMData_1.0.0_1755093802",
+  "submission_type": "dataset",
+  "status": "rejected",
+  "success": false,
+  "message": "Dataset failed integration testing",
+  "validation_results": [
+    {
+      "is_valid": true,
+      "status": "approved",
+      "errors": [],
+      "warnings": [],
+      "details": {
+        "file_path": "datasets\\demo_fbm_dataset.csv",
+        "format": ".csv"
+      },
+      "score": null
+    },
+    {
+      "is_valid": true,
+      "status": "approved",
+      "errors": [],
+      "warnings": [],
+      "details": {
+        "data_length": 1000,
+        "columns": [
+          "timestamp",
+          "value"
+        ]
+      },
+      "score": null
+    },
+    {
+      "is_valid": true,
+      "status": "approved",
+      "errors": [],
+      "warnings": [],
+      "details": {
+        "checked_fields": [
+          "source",
+          "description",
+          "sampling_frequency",
+          "units",
+          "collection_date"
+        ]
+      },
+      "score": null
+    }
+  ],
+  "test_results": {
+    "basic_stats": {
+      "length": 1000,
+      "mean": 7.388804788208995,
+      "std": 34.91599222737958,
+      "autocorrelation_lag1": 0.9955028686265701,
+      "success": true
+    },
+    "lrd_analysis": {
+      "hurst_estimate": 0.549987351951108,
+      "beta_estimate": 0.9000252960977838,
+      "r_squared": 0.9955101643521069,
+      "success": true
+    },
+    "robustness": {
+      "subset_results": {
+        "subset_50": {
+          "length": 500,
+          "mean": 8.50951982643634,
+          "std": 34.83082232882382
+        },
+        "subset_25": {
+          "length": 250,
+          "mean": 8.20417496629038,
+          "std": 35.461034797810115
+        }
+      },
+      "stability_metrics": {
+        "mean_stability_50": 0.15167744585914286,
+        "std_stability_50": 0.0024392804878956113,
+        "mean_stability_25": 0.11035210720176912,
+        "std_stability_25": 0.015610112606312627
+      },
+      "success": true
+    }
+  },
+  "performance_metrics": {
+    "overall_score": 0.985996052692244,
+    "test_success_rate": 1.0,
+    "lrd_detected": true,
+    "stability_score": 0.92998026346122,
+    "recommendations": []
+  },
+  "integration_results": {
+    "success": false,
+    "analysis_results": {
+      "dfa": {
+        "error": "No module named 'src'",
+        "success": false
+      },
+      "rs": {
+        "error": "No module named 'src'",
+        "success": false
+      },
+      "wavelet": {
+        "error": "No module named 'src'",
+        "success": false
+      },
+      "spectral": {
+        "error": "No module named 'src'",
+        "success": false
+      }
+    },
+    "model_comparison": {
+      "hurst_estimates": {},
+      "consistency": {},
+      "recommendations": []
+    },
+    "errors": []
+  },
+  "submission_date": "2025-08-13T15:03:22.285807",
+  "processing_time": 1.1852960586547852,
+  "errors": []
+}

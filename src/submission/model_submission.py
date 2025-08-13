@@ -113,6 +113,12 @@ class ModelValidator:
         
         # Try to import the model
         try:
+            # Set up the Python path to include the src directory
+            import sys
+            src_path = os.path.join(os.path.dirname(file_path), '..', 'src')
+            if os.path.exists(src_path) and src_path not in sys.path:
+                sys.path.insert(0, src_path)
+            
             spec = importlib.util.spec_from_file_location("submitted_model", file_path)
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
@@ -121,10 +127,14 @@ class ModelValidator:
             model_classes = []
             for attr_name in dir(module):
                 attr = getattr(module, attr_name)
-                if (isinstance(attr, type) and 
-                    issubclass(attr, BaseEstimatorModel) and 
-                    attr != BaseEstimatorModel):
-                    model_classes.append(attr)
+                if isinstance(attr, type):
+                    # Check if it's a subclass of BaseEstimatorModel by checking the module's BaseEstimatorModel
+                    if hasattr(module, 'BaseEstimatorModel'):
+                        module_base = module.BaseEstimatorModel
+                        if (issubclass(attr, module_base) and 
+                            attr != module_base and 
+                            attr != BaseEstimatorModel):
+                            model_classes.append(attr)
             
             if not model_classes:
                 return ValidationResult(
@@ -158,12 +168,19 @@ class ModelValidator:
         interface_result = self.compliance_checker.validate_model_interface(model_class)
         results.append(interface_result)
         
-        # Check if it's a proper subclass
-        if not issubclass(model_class, BaseEstimatorModel):
+        # Check if it's a proper subclass (we need to check against the module's BaseEstimatorModel)
+        # Since we can't easily access the module here, we'll check if it has the required methods instead
+        required_methods = ["fit", "estimate_hurst", "estimate_alpha", "get_confidence_intervals", "get_quality_metrics"]
+        missing_methods = []
+        for method in required_methods:
+            if not hasattr(model_class, method):
+                missing_methods.append(method)
+        
+        if missing_methods:
             results.append(ValidationResult(
                 is_valid=False,
                 status=SubmissionStatus.REJECTED,
-                errors=["Model class must inherit from BaseEstimatorModel"],
+                errors=[f"Model class missing required methods: {missing_methods}"],
                 warnings=[]
             ))
         
@@ -437,6 +454,12 @@ class ModelSubmission:
                 return submission_result
             
             # Step 2: Import and validate model class
+            # Set up the Python path to include the src directory
+            import sys
+            src_path = os.path.join(os.path.dirname(model_file), '..', 'src')
+            if os.path.exists(src_path) and src_path not in sys.path:
+                sys.path.insert(0, src_path)
+            
             spec = importlib.util.spec_from_file_location("submitted_model", model_file)
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
@@ -445,11 +468,15 @@ class ModelSubmission:
             model_class = None
             for attr_name in dir(module):
                 attr = getattr(module, attr_name)
-                if (isinstance(attr, type) and 
-                    issubclass(attr, BaseEstimatorModel) and 
-                    attr != BaseEstimatorModel):
-                    model_class = attr
-                    break
+                if isinstance(attr, type):
+                    # Check if it's a subclass of BaseEstimatorModel by checking the module's BaseEstimatorModel
+                    if hasattr(module, 'BaseEstimatorModel'):
+                        module_base = module.BaseEstimatorModel
+                        if (issubclass(attr, module_base) and 
+                            attr != module_base and 
+                            attr != BaseEstimatorModel):
+                            model_class = attr
+                            break
             
             if model_class is None:
                 submission_result["message"] = "No valid model class found"
