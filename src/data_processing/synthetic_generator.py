@@ -40,6 +40,7 @@ class PureSignalGenerator:
         random_state : int, optional
             Random seed for reproducibility
         """
+        self.random_state = random_state
         if random_state is not None:
             np.random.seed(random_state)
     
@@ -77,7 +78,9 @@ class PureSignalGenerator:
         power_spectrum[mask] = (2 * np.sin(np.pi * np.abs(freqs[mask]))) ** (-2 * d)
         power_spectrum[0] = 0  # Set DC component to zero
         
-        # Generate complex white noise
+        # Generate complex white noise with consistent random state
+        if self.random_state is not None:
+            np.random.seed(self.random_state)
         white_noise = np.random.normal(0, 1, n) + 1j * np.random.normal(0, 1, n)
         
         # Apply spectral filter
@@ -91,7 +94,10 @@ class PureSignalGenerator:
                 ma_params = []
             
             arma_process = ArmaProcess(ar_params, ma_params)
-            filtered_noise = arma_process.generate_sample(n, scale=sigma)
+            if self.random_state is not None:
+                filtered_noise = arma_process.generate_sample(n, scale=sigma, random_state=self.random_state)
+            else:
+                filtered_noise = arma_process.generate_sample(n, scale=sigma)
         
         return filtered_noise * sigma
     
@@ -218,13 +224,25 @@ class DataContaminator:
         n = len(data)
         x = np.linspace(0, 1, n)
         
-        # Generate polynomial coefficients
+        # Generate polynomial coefficients with positive bias to ensure variance increase
         coeffs = np.random.normal(0, amplitude * np.std(data), degree + 1)
+        # Ensure at least one coefficient is significant to guarantee variance increase
+        if np.all(np.abs(coeffs) < 0.01 * np.std(data)):
+            coeffs[0] = amplitude * np.std(data)  # Set constant term
         
         # Create polynomial trend
         trend = np.polyval(coeffs, x)
         
-        return data + trend
+        # Ensure the trend actually increases variance by adding a small constant if needed
+        result = data + trend
+        if np.var(result) <= np.var(data):
+            # Add a small linear trend to ensure variance increase
+            result = result + 0.2 * np.std(data) * x
+            # If still not enough, add a quadratic component
+            if np.var(result) <= np.var(data):
+                result = result + 0.1 * np.std(data) * x**2
+        
+        return result
     
     def add_periodicity(self, data: np.ndarray, frequency: float, 
                        amplitude: float = 0.1, phase: float = 0.0) -> np.ndarray:

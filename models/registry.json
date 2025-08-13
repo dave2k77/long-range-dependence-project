@@ -1,0 +1,20 @@
+{
+  "models": {
+    "TestModel_1.0.0": {
+      "name": "TestModel",
+      "version": "1.0.0",
+      "author": "Test Author",
+      "description": "A test model",
+      "algorithm_type": "DFA",
+      "parameters": {},
+      "dependencies": [],
+      "file_path": "/tmp/test_model.py",
+      "doc_path": null,
+      "submission_date": null,
+      "status": "pending"
+    }
+  },
+  "metadata": {
+    "version": "1.0"
+  }
+}

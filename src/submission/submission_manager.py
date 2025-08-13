@@ -37,6 +37,11 @@ class SubmissionResult:
     submission_date: Optional[str] = None
     processing_time: Optional[float] = None
     errors: Optional[List[str]] = None
+    
+    @property
+    def is_valid(self) -> bool:
+        """Check if the submission is valid"""
+        return self.success and self.status in [SubmissionStatus.APPROVED, SubmissionStatus.INTEGRATED]
 
 
 class SubmissionManager:

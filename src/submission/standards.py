@@ -28,8 +28,10 @@ class SubmissionStatus(Enum):
 @dataclass
 class ValidationResult:
     """Result of a validation check"""
-    passed: bool
-    message: str
+    is_valid: bool
+    status: SubmissionStatus
+    errors: List[str]
+    warnings: List[str]
     details: Optional[Dict[str, Any]] = None
     score: Optional[float] = None
 
@@ -38,27 +40,15 @@ class ModelStandards:
     """Standards that submitted models must meet"""
     
     @staticmethod
-    def get_required_interface() -> Dict[str, Any]:
+    def get_required_interface() -> List[str]:
         """Get the required interface for estimator models"""
-        return {
-            "class_name": str,
-            "version": str,
-            "author": str,
-            "description": str,
-            "parameters": Dict[str, Any],
-            "required_methods": [
-                "fit",
-                "estimate_hurst",
-                "estimate_alpha",
-                "get_confidence_intervals",
-                "get_quality_metrics"
-            ],
-            "optional_methods": [
-                "validate_input",
-                "preprocess_data",
-                "postprocess_results"
-            ]
-        }
+        return [
+            "fit",
+            "estimate_hurst",
+            "estimate_alpha",
+            "get_confidence_intervals",
+            "get_quality_metrics"
+        ]
     
     @staticmethod
     def get_parameter_constraints() -> Dict[str, Any]:
@@ -101,14 +91,15 @@ class DatasetStandards:
     """Standards that submitted datasets must meet"""
     
     @staticmethod
-    def get_required_format() -> Dict[str, Any]:
-        """Get required format for datasets"""
+    def get_format_requirements() -> Dict[str, Any]:
+        """Get format requirements for datasets"""
         return {
-            "file_formats": ["csv", "json", "parquet", "hdf5"],
+            "supported_formats": ["csv", "json", "parquet", "hdf5"],
+            "required_columns": ["timestamp", "value"],
+            "min_length": 100,
+            "max_length": 100000,
             "encoding": "utf-8",
             "delimiter": ",",
-            "required_columns": ["timestamp", "value"],
-            "optional_columns": ["metadata", "quality_flags"],
             "data_types": {
                 "timestamp": ["datetime64[ns]", "int64", "float64"],
                 "value": ["float64", "float32"]
@@ -159,9 +150,70 @@ class ComplianceChecker:
         self.model_standards = ModelStandards()
         self.dataset_standards = DatasetStandards()
     
+    def check_model_compliance(self, model) -> ValidationResult:
+        """Check if a model complies with standards"""
+        errors = []
+        warnings = []
+        
+        # Check required methods
+        required_methods = ModelStandards.get_required_interface()
+        for method in required_methods:
+            if not hasattr(model, method):
+                errors.append(f"Missing required method: {method}")
+        
+        # Check if model is fitted
+        if hasattr(model, 'fitted') and not model.fitted:
+            warnings.append("Model is not fitted")
+        
+        if errors:
+            return ValidationResult(
+                is_valid=False,
+                status=SubmissionStatus.REJECTED,
+                errors=errors,
+                warnings=warnings
+            )
+        
+        return ValidationResult(
+            is_valid=True,
+            status=SubmissionStatus.APPROVED,
+            errors=errors,
+            warnings=warnings
+        )
+    
+    def check_dataset_compliance(self, data: pd.DataFrame) -> ValidationResult:
+        """Check if a dataset complies with standards"""
+        errors = []
+        warnings = []
+        
+        # Check length
+        min_length = DatasetStandards.get_format_requirements()["min_length"]
+        if len(data) < min_length:
+            errors.append(f"Dataset too short: {len(data)} < {min_length}")
+        
+        # Check required columns
+        required_columns = DatasetStandards.get_format_requirements()["required_columns"]
+        for col in required_columns:
+            if col not in data.columns:
+                errors.append(f"Missing required column: {col}")
+        
+        if errors:
+            return ValidationResult(
+                is_valid=False,
+                status=SubmissionStatus.REJECTED,
+                errors=errors,
+                warnings=warnings
+            )
+        
+        return ValidationResult(
+            is_valid=True,
+            status=SubmissionStatus.APPROVED,
+            errors=errors,
+            warnings=warnings
+        )
+
     def validate_model_interface(self, model_class: type) -> ValidationResult:
         """Validate that a model class meets the required interface"""
-        required_methods = self.model_standards.get_required_interface()["required_methods"]
+        required_methods = ModelStandards.get_required_interface()
         missing_methods = []
         
         for method in required_methods:
@@ -170,20 +222,24 @@ class ComplianceChecker:
         
         if missing_methods:
             return ValidationResult(
-                passed=False,
-                message=f"Missing required methods: {missing_methods}",
+                is_valid=False,
+                status=SubmissionStatus.REJECTED,
+                errors=[f"Missing required methods: {missing_methods}"],
+                warnings=[],
                 details={"missing_methods": missing_methods}
             )
         
         return ValidationResult(
-            passed=True,
-            message="Model interface validation passed",
+            is_valid=True,
+            status=SubmissionStatus.APPROVED,
+            errors=[],
+            warnings=[],
             details={"checked_methods": required_methods}
         )
     
     def validate_model_parameters(self, parameters: Dict[str, Any]) -> ValidationResult:
         """Validate model parameters against constraints"""
-        constraints = self.model_standards.get_parameter_constraints()
+        constraints = ModelStandards.get_parameter_constraints()
         issues = []
         
         # Check required parameters
@@ -205,25 +261,29 @@ class ComplianceChecker:
         
         if issues:
             return ValidationResult(
-                passed=False,
-                message=f"Parameter validation failed: {len(issues)} issues found",
+                is_valid=False,
+                status=SubmissionStatus.REJECTED,
+                errors=issues,
+                warnings=[],
                 details={"issues": issues}
             )
         
         return ValidationResult(
-            passed=True,
-            message="Parameter validation passed",
+            is_valid=True,
+            status=SubmissionStatus.APPROVED,
+            errors=[],
+            warnings=[],
             details={"checked_parameters": list(parameters.keys())}
         )
     
     def validate_dataset_format(self, file_path: str) -> ValidationResult:
         """Validate dataset file format"""
-        format_requirements = self.dataset_standards.get_required_format()
+        format_requirements = DatasetStandards.get_format_requirements()
         issues = []
         
         # Check file format
         file_ext = Path(file_path).suffix.lower()
-        if file_ext not in [f".{fmt}" for fmt in format_requirements["file_formats"]]:
+        if file_ext not in [f".{fmt}" for fmt in format_requirements["supported_formats"]]:
             issues.append(f"Unsupported file format: {file_ext}")
         
         # Check if file exists and is readable
@@ -234,20 +294,24 @@ class ComplianceChecker:
         
         if issues:
             return ValidationResult(
-                passed=False,
-                message=f"Format validation failed: {len(issues)} issues found",
+                is_valid=False,
+                status=SubmissionStatus.REJECTED,
+                errors=issues,
+                warnings=[],
                 details={"issues": issues}
             )
         
         return ValidationResult(
-            passed=True,
-            message="Format validation passed",
+            is_valid=True,
+            status=SubmissionStatus.APPROVED,
+            errors=[],
+            warnings=[],
             details={"file_path": file_path, "format": file_ext}
         )
     
     def validate_dataset_content(self, data: pd.DataFrame) -> ValidationResult:
         """Validate dataset content against quality requirements"""
-        requirements = self.dataset_standards.get_quality_requirements()
+        requirements = DatasetStandards.get_quality_requirements()
         issues = []
         
         # Check data length
@@ -257,7 +321,7 @@ class ComplianceChecker:
             issues.append(f"Data too long: {len(data)} > {requirements['max_length']}")
         
         # Check required columns
-        required_cols = self.dataset_standards.get_required_format()["required_columns"]
+        required_cols = DatasetStandards.get_format_requirements()["required_columns"]
         for col in required_cols:
             if col not in data.columns:
                 issues.append(f"Missing required column: {col}")
@@ -276,57 +340,17 @@ class ComplianceChecker:
         
         if issues:
             return ValidationResult(
-                passed=False,
-                message=f"Content validation failed: {len(issues)} issues found",
+                is_valid=False,
+                status=SubmissionStatus.REJECTED,
+                errors=issues,
+                warnings=[],
                 details={"issues": issues}
             )
         
         return ValidationResult(
-            passed=True,
-            message="Content validation passed",
+            is_valid=True,
+            status=SubmissionStatus.APPROVED,
+            errors=[],
+            warnings=[],
             details={"data_length": len(data), "columns": list(data.columns)}
         )
-    
-    def validate_documentation(self, doc_path: str) -> ValidationResult:
-        """Validate documentation completeness"""
-        required_docs = self.model_standards.get_documentation_requirements()
-        missing_docs = []
-        
-        for doc in required_docs:
-            if not os.path.exists(os.path.join(doc_path, doc)):
-                missing_docs.append(doc)
-        
-        if missing_docs:
-            return ValidationResult(
-                passed=False,
-                message=f"Missing documentation: {len(missing_docs)} files",
-                details={"missing_docs": missing_docs}
-            )
-        
-        return ValidationResult(
-            passed=True,
-            message="Documentation validation passed",
-            details={"checked_docs": required_docs}
-        )
-    
-    def comprehensive_validation(self, submission_type: str, **kwargs) -> List[ValidationResult]:
-        """Perform comprehensive validation based on submission type"""
-        results = []
-        
-        if submission_type == "model":
-            # Model validation
-            if "model_class" in kwargs:
-                results.append(self.validate_model_interface(kwargs["model_class"]))
-            if "parameters" in kwargs:
-                results.append(self.validate_model_parameters(kwargs["parameters"]))
-            if "doc_path" in kwargs:
-                results.append(self.validate_documentation(kwargs["doc_path"]))
-        
-        elif submission_type == "dataset":
-            # Dataset validation
-            if "file_path" in kwargs:
-                results.append(self.validate_dataset_format(kwargs["file_path"]))
-            if "data" in kwargs:
-                results.append(self.validate_dataset_content(kwargs["data"]))
-        
-        return results

@@ -97,6 +97,7 @@ class TestDataContaminator(unittest.TestCase):
     
     def setUp(self):
         """Set up test fixtures."""
+        np.random.seed(42)  # Ensure reproducible test data
         self.contaminator = DataContaminator(random_state=42)
         self.test_data = np.random.normal(0, 1, 100)
     

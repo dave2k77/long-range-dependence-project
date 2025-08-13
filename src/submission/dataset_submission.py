@@ -16,7 +16,7 @@ from dataclasses import dataclass, asdict
 import shutil
 from datetime import datetime
 
-from .standards import DatasetStandards, ValidationResult, ComplianceChecker
+from .standards import DatasetStandards, ValidationResult, ComplianceChecker, SubmissionStatus
 
 
 @dataclass
@@ -26,19 +26,15 @@ class DatasetMetadata:
     version: str
     author: str
     description: str
-    category: str  # e.g., "financial", "physiological", "environmental", "synthetic"
     source: str
-    sampling_frequency: str
-    units: str
-    collection_date: str
+    format: str  # e.g., "csv", "json", "parquet"
+    size: int  # number of rows
+    columns: List[str]
     file_path: str
     metadata_file: Optional[str] = None
     quality_report: Optional[str] = None
     submission_date: Optional[str] = None
     status: str = "pending"
-    size_mb: Optional[float] = None
-    length: Optional[int] = None
-    columns: Optional[List[str]] = None
 
 
 class DatasetValidator:
@@ -47,6 +43,10 @@ class DatasetValidator:
     def __init__(self):
         self.compliance_checker = ComplianceChecker()
         self.standards = DatasetStandards()
+    
+    def validate(self, data: pd.DataFrame) -> ValidationResult:
+        """Validate a dataset"""
+        return self.compliance_checker.check_dataset_compliance(data)
     
     def validate_dataset_file(self, file_path: str) -> ValidationResult:
         """Validate dataset file format and accessibility"""
@@ -68,14 +68,18 @@ class DatasetValidator:
         
         if missing_fields:
             return ValidationResult(
-                passed=False,
-                message=f"Missing required metadata fields: {missing_fields}",
+                is_valid=False,
+                status=SubmissionStatus.REJECTED,
+                errors=[f"Missing required metadata fields: {missing_fields}"],
+                warnings=[],
                 details={"missing_fields": missing_fields}
             )
         
         return ValidationResult(
-            passed=True,
-            message="Metadata validation passed",
+            is_valid=True,
+            status=SubmissionStatus.APPROVED,
+            errors=[],
+            warnings=[],
             details={"checked_fields": requirements["required_metadata"]}
         )
     
@@ -331,18 +335,15 @@ class DatasetTester:
         ss_tot = np.sum((y - np.mean(y)) ** 2)
         return 1 - (ss_res / ss_tot) if ss_tot != 0 else 0.0
     
-    def test_dataset(self, data: pd.DataFrame) -> Dict[str, Any]:
-        """Test dataset with all available test models"""
+    def test(self, data: pd.DataFrame) -> Dict[str, Any]:
+        """Test a dataset"""
         results = {}
         
         for test_name, test_func in self.test_models.items():
             try:
                 results[test_name] = test_func(data)
             except Exception as e:
-                results[test_name] = {
-                    "error": f"Test {test_name} failed: {str(e)}",
-                    "success": False
-                }
+                results[test_name] = {"error": str(e), "success": False}
         
         return results
     
@@ -415,6 +416,10 @@ class DatasetRegistry:
         with open(self.registry_path, 'w') as f:
             json.dump(self.registry, f, indent=2)
     
+    def register(self, metadata: DatasetMetadata) -> bool:
+        """Register a new dataset (alias for register_dataset)"""
+        return self.register_dataset(metadata)
+    
     def register_dataset(self, metadata: DatasetMetadata) -> bool:
         """Register a new dataset"""
         dataset_id = f"{metadata.name}_{metadata.version}"
@@ -473,7 +478,7 @@ class DatasetSubmission:
             format_validation = self.validator.validate_dataset_file(file_path)
             submission_result["validation_results"].append(format_validation)
             
-            if not format_validation.passed:
+            if not format_validation.is_valid:
                 submission_result["message"] = "Dataset file validation failed"
                 return submission_result
             
@@ -495,7 +500,7 @@ class DatasetSubmission:
             content_validation = self.validator.validate_dataset_content(data)
             submission_result["validation_results"].append(content_validation)
             
-            if not content_validation.passed:
+            if not content_validation.is_valid:
                 submission_result["message"] = "Dataset content validation failed"
                 return submission_result
             
@@ -503,8 +508,8 @@ class DatasetSubmission:
             metadata_validation = self.validator.validate_metadata(metadata)
             submission_result["validation_results"].append(metadata_validation)
             
-            if not metadata_validation.passed:
-                submission_result["message"] = "Metadata validation failed"
+            if not metadata_validation.is_valid:
+                submission_result["message"] = "Dataset metadata validation failed"
                 return submission_result
             
             # Step 4: Generate quality report
@@ -518,7 +523,7 @@ class DatasetSubmission:
             
             # Step 5: Test dataset if requested
             if test_dataset:
-                test_results = self.tester.test_dataset(data)
+                test_results = self.tester.test(data)
                 quality_evaluation = self.tester.evaluate_dataset_quality(test_results)
                 
                 submission_result["test_results"] = test_results

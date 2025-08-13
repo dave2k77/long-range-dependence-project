@@ -17,7 +17,7 @@ import sys
 from dataclasses import dataclass, asdict
 from abc import ABC, abstractmethod
 
-from .standards import ModelStandards, ValidationResult, ComplianceChecker
+from .standards import ModelStandards, ValidationResult, ComplianceChecker, SubmissionStatus
 
 
 @dataclass
@@ -27,7 +27,7 @@ class ModelMetadata:
     version: str
     author: str
     description: str
-    category: str  # e.g., "dfa", "rs", "wavelet", "spectral", "custom"
+    algorithm_type: str  # e.g., "dfa", "rs", "wavelet", "spectral", "custom"
     parameters: Dict[str, Any]
     dependencies: List[str]
     file_path: str
@@ -97,12 +97,18 @@ class ModelValidator:
         self.compliance_checker = ComplianceChecker()
         self.standards = ModelStandards()
     
+    def validate(self, model) -> ValidationResult:
+        """Validate a model instance"""
+        return self.compliance_checker.check_model_compliance(model)
+    
     def validate_model_file(self, file_path: str) -> ValidationResult:
         """Validate a model file"""
         if not os.path.exists(file_path):
             return ValidationResult(
-                passed=False,
-                message=f"Model file does not exist: {file_path}"
+                is_valid=False,
+                status=SubmissionStatus.REJECTED,
+                errors=[f"Model file does not exist: {file_path}"],
+                warnings=[]
             )
         
         # Try to import the model
@@ -122,20 +128,26 @@ class ModelValidator:
             
             if not model_classes:
                 return ValidationResult(
-                    passed=False,
-                    message="No valid model classes found in file"
+                    is_valid=False,
+                    status=SubmissionStatus.REJECTED,
+                    errors=["No valid model classes found in file"],
+                    warnings=[]
                 )
             
             return ValidationResult(
-                passed=True,
-                message=f"Found {len(model_classes)} model classes",
+                is_valid=True,
+                status=SubmissionStatus.APPROVED,
+                errors=[],
+                warnings=[],
                 details={"model_classes": [cls.__name__ for cls in model_classes]}
             )
             
         except Exception as e:
             return ValidationResult(
-                passed=False,
-                message=f"Failed to import model: {str(e)}"
+                is_valid=False,
+                status=SubmissionStatus.REJECTED,
+                errors=[f"Failed to import model: {str(e)}"],
+                warnings=[]
             )
     
     def validate_model_class(self, model_class: type) -> List[ValidationResult]:
@@ -149,8 +161,10 @@ class ModelValidator:
         # Check if it's a proper subclass
         if not issubclass(model_class, BaseEstimatorModel):
             results.append(ValidationResult(
-                passed=False,
-                message="Model class must inherit from BaseEstimatorModel"
+                is_valid=False,
+                status=SubmissionStatus.REJECTED,
+                errors=["Model class must inherit from BaseEstimatorModel"],
+                warnings=[]
             ))
         
         # Check for required attributes
@@ -158,8 +172,10 @@ class ModelValidator:
         for attr in required_attrs:
             if not hasattr(model_class, attr):
                 results.append(ValidationResult(
-                    passed=False,
-                    message=f"Missing required attribute: {attr}"
+                    is_valid=False,
+                    status=SubmissionStatus.REJECTED,
+                    errors=[f"Missing required attribute: {attr}"],
+                    warnings=[]
                 ))
         
         return results
@@ -179,14 +195,18 @@ class ModelValidator:
         
         if missing_deps:
             return ValidationResult(
-                passed=False,
-                message=f"Missing dependencies: {missing_deps}",
+                is_valid=False,
+                status=SubmissionStatus.REJECTED,
+                errors=[f"Missing dependencies: {missing_deps}"],
+                warnings=[],
                 details={"missing_dependencies": missing_deps}
             )
         
         return ValidationResult(
-            passed=True,
-            message="All dependencies available",
+            is_valid=True,
+            status=SubmissionStatus.APPROVED,
+            errors=[],
+            warnings=[],
             details={"dependencies": dependencies}
         )
 
@@ -241,15 +261,12 @@ class ModelTester:
         
         return x
     
-    def test_model(self, model_class: type, parameters: Dict[str, Any]) -> Dict[str, Any]:
-        """Test a model on all test datasets"""
+    def test(self, model) -> Dict[str, Any]:
+        """Test a model instance"""
         results = {}
         
         for dataset_name, data in self.test_data.items():
             try:
-                # Initialize model
-                model = model_class(**parameters)
-                
                 # Time the fitting process
                 start_time = time.time()
                 model.fit(data)
@@ -354,6 +371,10 @@ class ModelRegistry:
         with open(self.registry_path, 'w') as f:
             json.dump(self.registry, f, indent=2)
     
+    def register(self, metadata: ModelMetadata) -> bool:
+        """Register a new model (alias for register_model)"""
+        return self.register_model(metadata)
+    
     def register_model(self, metadata: ModelMetadata) -> bool:
         """Register a new model"""
         model_id = f"{metadata.name}_{metadata.version}"
@@ -411,7 +432,7 @@ class ModelSubmission:
             file_validation = self.validator.validate_model_file(model_file)
             submission_result["validation_results"].append(file_validation)
             
-            if not file_validation.passed:
+            if not file_validation.is_valid:
                 submission_result["message"] = "Model file validation failed"
                 return submission_result
             
@@ -439,7 +460,7 @@ class ModelSubmission:
             submission_result["validation_results"].extend(class_validation_results)
             
             # Check if all validations passed
-            all_passed = all(result.passed for result in submission_result["validation_results"])
+            all_passed = all(result.is_valid for result in submission_result["validation_results"])
             
             if not all_passed:
                 submission_result["message"] = "Model validation failed"
@@ -447,7 +468,7 @@ class ModelSubmission:
             
             # Step 4: Test model if requested
             if test_model:
-                test_results = self.tester.test_model(model_class, metadata.parameters)
+                test_results = self.tester.test(model_class(**metadata.parameters))
                 performance = self.tester.evaluate_performance(test_results)
                 
                 submission_result["test_results"] = test_results

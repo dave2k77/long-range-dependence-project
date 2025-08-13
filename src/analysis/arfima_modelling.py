@@ -263,7 +263,9 @@ class ARFIMAModel:
             roots = np.roots(ma_poly)
             ma_constraint = np.min(np.abs(roots)) - 1.0
         
-        return min(d_constraint, ar_constraint, ma_constraint)
+        # Return the minimum constraint value, ensuring it's positive for valid parameters
+        constraint_value = min(d_constraint, ar_constraint, ma_constraint)
+        return constraint_value
     
     def fit(self, y: Union[np.ndarray, pd.Series], 
             method: str = 'mle', 

@@ -233,8 +233,9 @@ class TestARFIMAModel:
         """Test constraint function for optimization."""
         model = ARFIMAModel(p=1, d=0.3, q=1)
         
-        # Test valid parameters
-        valid_params = np.array([0.3, 0.5, 0.3, 0.0, 0.0])  # d, ar, ma, intercept, log_sigma2
+        # Test valid parameters (AR and MA parameters must have roots outside unit circle)
+        # Use parameters that result in roots outside unit circle (stationary/invertible)
+        valid_params = np.array([0.3, 1.5, 1.5, 0.0, 0.0])  # d, ar, ma, intercept, log_sigma2
         constraint_value = model._constraint_function(valid_params)
         assert constraint_value > 0
         

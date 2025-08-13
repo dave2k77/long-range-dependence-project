@@ -1,0 +1,25 @@
+{
+  "datasets": {
+    "TestDataset_1.0.0": {
+      "name": "TestDataset",
+      "version": "1.0.0",
+      "author": "Test Author",
+      "description": "A test dataset",
+      "source": "Synthetic",
+      "format": "CSV",
+      "size": 100,
+      "columns": [
+        "timestamp",
+        "value"
+      ],
+      "file_path": "/tmp/test_dataset.csv",
+      "metadata_file": null,
+      "quality_report": null,
+      "submission_date": null,
+      "status": "pending"
+    }
+  },
+  "metadata": {
+    "version": "1.0"
+  }
+}
