@@ -178,4 +178,15 @@ If you encounter issues:
 3. **Data generation issues**: Check that your random seed is set for reproducibility
 4. **Analysis failures**: Ensure your data has sufficient length (recommend at least 500 points)
 
+### Recent Fixes Applied
+
+The following issues have been resolved in recent updates:
+
+1. **ArmaProcess Parameter Error**: Fixed `random_state` parameter issue in ARFIMA generation
+2. **Method Parameter Validation**: Corrected parameter lists for all generation methods  
+3. **Import Path Updates**: Updated all import statements to match current codebase structure
+4. **Tutorial Accuracy**: All code examples now work with the current implementation
+
+### Getting Help
+
 For more help, check the project documentation or create an issue on GitHub.

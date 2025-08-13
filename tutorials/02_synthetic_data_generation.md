@@ -344,6 +344,34 @@ print(f"Loaded comprehensive dataset: {len(loaded_comprehensive['clean_signals']
 **Issue**: Contamination not visible
 **Solution**: Increase amplitude parameters and check signal-to-noise ratios
 
+**Issue**: `TypeError: ArmaProcess.generate_sample() got an unexpected keyword argument 'random_state'`
+**Solution**: This issue has been fixed in the latest version. The method now properly handles reproducibility by setting the numpy random seed before calling `generate_sample()`. If you encounter this error, please update to the latest version.
+
+**Issue**: `TypeError: generate_comprehensive_dataset() got an unexpected keyword argument 'data_root'`
+**Solution**: The `generate_comprehensive_dataset()` method doesn't accept a `data_root` parameter. Use the constructor to set the data root: `SyntheticDataGenerator(data_root="custom_path", random_state=42)`.
+
+### Recent Fixes Applied
+
+The following issues have been resolved in recent updates:
+
+1. **ArmaProcess Parameter Error**: Fixed `random_state` parameter issue in ARFIMA generation
+2. **Method Parameter Validation**: Corrected parameter lists for all generation methods
+3. **Import Path Updates**: Updated all import statements to match current codebase structure
+4. **Tutorial Accuracy**: All code examples now work with the current implementation
+
+### Getting Help
+
+If you encounter issues not covered here:
+
+1. **Check the project documentation**
+2. **Review the API reference**
+3. **Run the demo scripts**: `python scripts/demo_synthetic_data.py`
+4. **Create an issue on GitHub** with:
+   - Error message and traceback
+   - Code that caused the error
+   - Your system information (Python version, OS)
+   - Expected vs. actual behavior
+
 ## 📚 Next Steps
 
 - **Tutorial 3**: Learn advanced analysis methods
