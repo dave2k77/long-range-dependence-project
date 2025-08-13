@@ -4,6 +4,8 @@
 
 This tutorial covers the comprehensive synthetic data generation capabilities of our framework. You'll learn how to generate pure signals (ARFIMA, fBm, fGn) and apply various contaminations for robust method testing.
 
+**⚠️ Important**: Make sure you're running this code from the **project root directory** (the folder containing the `src/` directory). The import paths assume you're working from this location.
+
 ## 📊 Pure Signal Generators
 
 ### ARFIMA Processes
@@ -13,7 +15,14 @@ ARFIMA (Autoregressive Fractionally Integrated Moving Average) processes are cha
 ```python
 import sys
 from pathlib import Path
-sys.path.append(str(Path.cwd() / "src"))
+
+# Ensure we're in the project root directory
+project_root = Path.cwd()
+if not (project_root / "src" / "data_processing" / "synthetic_generator.py").exists():
+    raise RuntimeError("Please run this code from the project root directory")
+
+# Add src to Python path
+sys.path.insert(0, str(project_root / "src"))
 
 from data_processing.synthetic_generator import SyntheticDataGenerator
 
@@ -370,6 +379,13 @@ print(f"Loaded comprehensive dataset: {len(loaded_comprehensive['clean_signals']
 
 **Issue**: `TypeError: generate_comprehensive_dataset() got an unexpected keyword argument 'data_root'`
 **Solution**: The `generate_comprehensive_dataset()` method doesn't accept a `data_root` parameter. Use the constructor to set the data root: `SyntheticDataGenerator(data_root="custom_path", random_state=42)`.
+
+**Issue**: `ModuleNotFoundError: No module named 'data_processing'`
+**Solution**: 
+1. Ensure you're running the code from the project root directory (where `src/` folder is located)
+2. Check that the `src/data_processing/__init__.py` file exists
+3. Try using absolute imports: `from src.data_processing.synthetic_generator import SyntheticDataGenerator`
+4. Or set PYTHONPATH: `export PYTHONPATH="${PYTHONPATH}:/path/to/your/project/src"`
 
 ### Recent Fixes Applied
 
