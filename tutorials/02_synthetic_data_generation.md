@@ -164,14 +164,23 @@ Generate a complete set of synthetic datasets for comprehensive testing.
 # Generate comprehensive dataset
 comprehensive_dataset = generator.generate_comprehensive_dataset(
     n=1000,
-    save=True,
-    data_root="data"
+    save=True
 )
 
 print("Generated datasets:")
 print(f"Clean signals: {len(comprehensive_dataset['clean_signals'])}")
 print(f"Contaminated signals: {len(comprehensive_dataset['contaminated_signals'])}")
 print(f"Irregular signals: {len(comprehensive_dataset['irregular_signals'])}")
+```
+
+**Note**: The `generate_comprehensive_dataset` method automatically saves data to the default data directory. If you need to specify a custom data root, you can initialize the `SyntheticDataGenerator` with a custom `data_root` parameter:
+
+```python
+# Initialize with custom data root
+generator = SyntheticDataGenerator(data_root="custom_data", random_state=42)
+
+# Generate comprehensive dataset
+comprehensive_dataset = generator.generate_comprehensive_dataset(n=1000, save=True)
 ```
 
 ### Custom Signal Generation
