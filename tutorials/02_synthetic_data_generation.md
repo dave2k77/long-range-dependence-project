@@ -251,6 +251,13 @@ for name, signal in signals.items():
 
 Verify that generated signals exhibit the expected long-range dependence.
 
+**Important Note**: Different analysis methods return different measures:
+- **DFA**: Returns `alpha` (scaling exponent), where Hurst exponent H = α/2
+- **R/S**: Returns `hurst` directly (Hurst exponent)
+- **MFDFA**: Returns `hq` array (generalized Hurst exponents for different q values)
+- **Wavelet**: Returns `hurst` directly (Hurst exponent)
+- **Spectral**: Returns `hurst` directly (Hurst exponent)
+
 ```python
 from analysis.dfa_analysis import dfa
 from analysis.rs_analysis import rs_analysis
@@ -262,14 +269,17 @@ def validate_lrd(signal, name):
     try:
         # DFA analysis
         scales, flucts, dfa_summary = dfa(signal, order=1)
-        print(f"  DFA Hurst: {dfa_summary.hurst:.3f}")
+        # DFA gives alpha, convert to Hurst: H = alpha/2
+        dfa_hurst = dfa_summary.alpha / 2
+        print(f"  DFA Alpha: {dfa_summary.alpha:.3f}")
+        print(f"  DFA Hurst (H = α/2): {dfa_hurst:.3f}")
         
         # R/S analysis
         scales_rs, rs_values, rs_summary = rs_analysis(signal)
         print(f"  R/S Hurst: {rs_summary.hurst:.3f}")
         
-        # Check consistency
-        hurst_diff = abs(dfa_summary.hurst - rs_summary.hurst)
+        # Check consistency between DFA and R/S
+        hurst_diff = abs(dfa_hurst - rs_summary.hurst)
         if hurst_diff < 0.1:
             print(f"  ✓ Hurst estimates consistent (diff: {hurst_diff:.3f})")
         else:
