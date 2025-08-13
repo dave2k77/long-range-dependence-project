@@ -94,10 +94,10 @@ class PureSignalGenerator:
                 ma_params = []
             
             arma_process = ArmaProcess(ar_params, ma_params)
+            # Set random seed before generating sample (ArmaProcess doesn't accept random_state)
             if self.random_state is not None:
-                filtered_noise = arma_process.generate_sample(n, scale=sigma, random_state=self.random_state)
-            else:
-                filtered_noise = arma_process.generate_sample(n, scale=sigma)
+                np.random.seed(self.random_state)
+            filtered_noise = arma_process.generate_sample(n, scale=sigma)
         
         return filtered_noise * sigma
     
