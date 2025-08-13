@@ -395,6 +395,71 @@ class SyntheticDataGenerator:
         if random_state is not None:
             np.random.seed(random_state)
     
+    def generate_arfima(self, n: int, d: float, ar_params: List[float] = None, 
+                       ma_params: List[float] = None, sigma: float = 1.0) -> np.ndarray:
+        """
+        Generate ARFIMA(p,d,q) time series.
+        
+        Parameters:
+        -----------
+        n : int
+            Length of the time series
+        d : float
+            Fractional differencing parameter (0 < d < 0.5 for stationarity)
+        ar_params : List[float], optional
+            AR parameters
+        ma_params : List[float], optional
+            MA parameters
+        sigma : float
+            Standard deviation of innovations
+            
+        Returns:
+        --------
+        np.ndarray
+            Generated ARFIMA time series
+        """
+        return self.pure_generator.generate_arfima(n, d, ar_params, ma_params, sigma)
+    
+    def generate_fbm(self, n: int, hurst: float, sigma: float = 1.0) -> np.ndarray:
+        """
+        Generate Fractional Brownian Motion (fBm) time series.
+        
+        Parameters:
+        -----------
+        n : int
+            Length of the time series
+        hurst : float
+            Hurst exponent (0 < H < 1)
+        sigma : float
+            Standard deviation
+            
+        Returns:
+        --------
+        np.ndarray
+            Generated fBm time series
+        """
+        return self.pure_generator.generate_fbm(n, hurst, sigma)
+    
+    def generate_fgn(self, n: int, hurst: float, sigma: float = 1.0) -> np.ndarray:
+        """
+        Generate Fractional Gaussian Noise (fGn) time series.
+        
+        Parameters:
+        -----------
+        n : int
+            Length of the time series
+        hurst : float
+            Hurst exponent (0 < H < 1)
+        sigma : float
+            Standard deviation
+            
+        Returns:
+        --------
+        np.ndarray
+            Generated fGn time series
+        """
+        return self.pure_generator.generate_fgn(n, hurst, sigma)
+    
     def generate_clean_signals(self, n: int = 1000, save: bool = True) -> Dict[str, np.ndarray]:
         """
         Generate clean signals without contamination.

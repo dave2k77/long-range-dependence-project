@@ -1034,6 +1034,56 @@ class ARFIMAModel:
             raise ValueError("Model must be fitted before making predictions")
         fitted, _ = self._compute_fitted_values(y)
         return fitted
+    
+    def estimate_hurst(self) -> float:
+        """
+        Estimate Hurst exponent from the fitted ARFIMA model.
+        
+        Returns:
+        --------
+        float
+            Estimated Hurst exponent
+        """
+        if not self.is_fitted:
+            raise ValueError("Model must be fitted before estimating Hurst exponent")
+        
+        # For ARFIMA models, H = d + 0.5
+        return self.params.d + 0.5
+    
+    def estimate_alpha(self) -> float:
+        """
+        Estimate alpha parameter from the fitted ARFIMA model.
+        
+        Returns:
+        --------
+        float
+            Estimated alpha parameter
+        """
+        if not self.is_fitted:
+            raise ValueError("Model must be fitted before estimating alpha")
+        
+        # For ARFIMA models, alpha = 2 * d
+        return 2 * self.params.d
+    
+    def get_confidence_intervals(self) -> Dict[str, float]:
+        """
+        Get confidence intervals for model parameters.
+        
+        Returns:
+        --------
+        Dict[str, float]
+            Dictionary with confidence intervals
+        """
+        if not self.is_fitted:
+            raise ValueError("Model must be fitted before computing confidence intervals")
+        
+        # Simple confidence intervals based on parameter estimates
+        # In a full implementation, these would be computed from the Hessian matrix
+        return {
+            'd_ci': (max(0.01, self.params.d - 0.1), min(0.49, self.params.d + 0.1)),
+            'hurst_ci': (max(0.51, self.estimate_hurst() - 0.1), min(0.99, self.estimate_hurst() + 0.1)),
+            'alpha_ci': (max(0.02, self.estimate_alpha() - 0.2), min(0.98, self.estimate_alpha() + 0.2))
+        }
 
 
 def estimate_arfima_order(y: np.ndarray, max_p: int = 3, max_q: int = 3, 
