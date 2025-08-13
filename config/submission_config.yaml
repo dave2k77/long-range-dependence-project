@@ -1,0 +1,244 @@
+# Submission Configuration for Long-Range Dependence Project
+# This file contains settings for the submission system
+
+# Model Submission Configuration
+model_submission:
+  # Validation settings
+  validation:
+    require_documentation: true
+    require_tests: true
+    require_examples: true
+    max_file_size_mb: 10
+    allowed_file_extensions: [".py"]
+  
+  # Testing settings
+  testing:
+    run_unit_tests: true
+    run_integration_tests: true
+    run_performance_tests: true
+    test_timeout_seconds: 300
+    min_test_success_rate: 0.8
+  
+  # Performance thresholds
+  performance_thresholds:
+    min_r_squared: 0.7
+    max_std_error: 0.2
+    min_convergence_rate: 0.8
+    max_computation_time_seconds: 300
+    min_memory_efficiency: 0.5
+  
+  # Integration settings
+  integration:
+    run_full_analysis: true
+    compare_with_existing: true
+    generate_comparison_report: true
+    min_integration_success_rate: 0.8
+
+# Dataset Submission Configuration
+dataset_submission:
+  # Validation settings
+  validation:
+    require_metadata: true
+    require_quality_report: true
+    max_file_size_mb: 100
+    allowed_file_formats: [".csv", ".json", ".parquet", ".hdf5"]
+  
+  # Quality requirements
+  quality_requirements:
+    min_length: 100
+    max_length: 100000
+    max_missing_ratio: 0.1
+    max_outlier_ratio: 0.05
+    min_quality_score: 0.7
+  
+  # Testing settings
+  testing:
+    run_basic_tests: true
+    run_lrd_analysis: true
+    run_robustness_tests: true
+    test_timeout_seconds: 600
+    min_test_success_rate: 0.7
+  
+  # Integration settings
+  integration:
+    run_full_analysis: true
+    test_with_all_models: true
+    generate_analysis_report: true
+    min_integration_success_rate: 0.7
+
+# Registry Configuration
+registry:
+  # Model registry
+  models:
+    registry_file: "models/registry.json"
+    backup_enabled: true
+    backup_interval_hours: 24
+    max_backups: 10
+  
+  # Dataset registry
+  datasets:
+    registry_file: "datasets/registry.json"
+    backup_enabled: true
+    backup_interval_hours: 24
+    max_backups: 10
+
+# Storage Configuration
+storage:
+  # Submitted files
+  submitted_files:
+    models_dir: "models/submitted"
+    datasets_dir: "datasets/submitted"
+    max_storage_gb: 10
+    cleanup_old_files: true
+    cleanup_after_days: 90
+  
+  # Results and reports
+  results:
+    results_dir: "results/submissions"
+    reports_dir: "results/submission_reports"
+    logs_dir: "logs/submissions"
+    max_results_age_days: 365
+
+# Processing Configuration
+processing:
+  # Parallel processing
+  parallel:
+    enabled: true
+    max_workers: 4
+    backend: "multiprocessing"
+  
+  # Memory management
+  memory:
+    max_memory_usage_gb: 4
+    chunk_size: 10000
+    enable_garbage_collection: true
+  
+  # Caching
+  cache:
+    enabled: true
+    max_cache_size_mb: 500
+    cache_ttl_hours: 24
+
+# Notification Configuration
+notifications:
+  # Email notifications
+  email:
+    enabled: false
+    smtp_server: "smtp.gmail.com"
+    smtp_port: 587
+    sender_email: ""
+    sender_password: ""
+  
+  # Webhook notifications
+  webhook:
+    enabled: false
+    webhook_url: ""
+    webhook_secret: ""
+  
+  # Local notifications
+  local:
+    enabled: true
+    log_level: "INFO"
+    save_notifications: true
+
+# Security Configuration
+security:
+  # File validation
+  file_validation:
+    check_file_integrity: true
+    scan_for_malware: false
+    validate_file_signatures: false
+  
+  # Access control
+  access_control:
+    require_authentication: false
+    allowed_domains: []
+    max_submissions_per_day: 10
+  
+  # Data privacy
+  data_privacy:
+    anonymize_data: false
+    encrypt_sensitive_data: false
+    retention_policy_days: 365
+
+# Reporting Configuration
+reporting:
+  # Report generation
+  reports:
+    generate_validation_report: true
+    generate_testing_report: true
+    generate_integration_report: true
+    generate_summary_report: true
+  
+  # Report formats
+  formats:
+    default_format: "json"
+    supported_formats: ["json", "html", "pdf", "csv"]
+  
+  # Report content
+  content:
+    include_validation_details: true
+    include_test_results: true
+    include_performance_metrics: true
+    include_recommendations: true
+    include_error_details: true
+
+# Integration Configuration
+integration:
+  # Analysis pipeline integration
+  analysis_pipeline:
+    auto_integrate_approved: true
+    run_comparison_analysis: true
+    update_benchmark_results: true
+  
+  # External system integration
+  external_systems:
+    github_integration:
+      enabled: false
+      repository: ""
+      branch: "main"
+      auto_commit: false
+    
+    ci_cd_integration:
+      enabled: false
+      pipeline_url: ""
+      trigger_on_approval: false
+
+# Monitoring Configuration
+monitoring:
+  # Performance monitoring
+  performance:
+    track_processing_times: true
+    track_memory_usage: true
+    track_success_rates: true
+  
+  # Error monitoring
+  errors:
+    log_all_errors: true
+    track_error_frequencies: true
+    alert_on_critical_errors: false
+  
+  # Usage monitoring
+  usage:
+    track_submission_volume: true
+    track_user_activity: true
+    generate_usage_reports: true
+
+# Backup and Recovery Configuration
+backup:
+  # Automatic backups
+  automatic:
+    enabled: true
+    backup_interval_hours: 24
+    backup_retention_days: 30
+  
+  # Manual backups
+  manual:
+    enabled: true
+    backup_before_changes: true
+  
+  # Recovery
+  recovery:
+    enabled: true
+    test_recovery_procedures: false
+    recovery_timeout_minutes: 60

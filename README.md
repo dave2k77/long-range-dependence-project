@@ -33,6 +33,13 @@ This project provides a complete toolkit for long-range dependence (LRD) analysi
 - **Monte Carlo Simulations**: Performance evaluation under controlled conditions
 - **Hypothesis Testing**: Statistical significance testing for LRD detection
 
+### Submission System
+- **Model Submission**: Submit new estimator models with validation and testing
+- **Dataset Submission**: Submit new datasets with quality assessment
+- **Standards Compliance**: Automatic validation against quality standards
+- **Integration Testing**: Full analysis pipeline integration
+- **Registry Management**: Centralized model and dataset registry
+
 ## 📁 Project Structure
 
 ```
@@ -40,6 +47,7 @@ long-range-dependence-project/
 ├── src/                          # Source code
 │   ├── analysis/                 # Analysis methods
 │   ├── data_processing/          # Data handling and synthetic generation
+│   ├── submission/               # Model and dataset submission system
 │   └── visualisation/            # Plotting and visualization
 ├── scripts/                      # Execution scripts
 ├── notebooks/                    # Jupyter notebooks
@@ -54,6 +62,7 @@ long-range-dependence-project/
 │   └── reports/                  # Analysis reports
 ├── config/                       # Configuration files
 ├── docs/                         # Documentation
+├── tutorials/                    # Tutorial guides
 └── manuscript/                   # Research manuscript
 ```
 
@@ -237,6 +246,77 @@ The project automatically generates comprehensive visualizations:
 - **Fractal Analysis Results**: DFA, R/S, Higuchi method plots
 - **Validation Results**: Bootstrap, cross-validation, Monte Carlo plots
 - **Synthetic Data Examples**: Pure and contaminated signal comparisons
+
+## 🔄 Submission System
+
+### Model Submission
+
+Submit new estimator models to the benchmark:
+
+```python
+from src.submission import SubmissionManager, ModelMetadata
+
+# Create model metadata
+metadata = ModelMetadata(
+    name="MyEstimator",
+    version="1.0.0",
+    author="Your Name",
+    description="Description of your model",
+    category="custom",
+    parameters={"param1": 1.0},
+    dependencies=["numpy", "pandas"]
+)
+
+# Submit model
+manager = SubmissionManager()
+result = manager.submit_model(
+    model_file="path/to/your/model.py",
+    metadata=metadata,
+    run_full_analysis=True
+)
+
+print(f"Submission ID: {result.submission_id}")
+print(f"Status: {result.status.value}")
+```
+
+### Dataset Submission
+
+Submit new datasets for analysis:
+
+```python
+from src.submission import DatasetMetadata
+
+# Create dataset metadata
+metadata = DatasetMetadata(
+    name="MyDataset",
+    version="1.0.0",
+    author="Your Name",
+    description="Description of your dataset",
+    category="financial",
+    source="Data source",
+    sampling_frequency="1 hour",
+    units="USD",
+    collection_date="2024-01-01"
+)
+
+# Submit dataset
+result = manager.submit_dataset(
+    file_path="path/to/your/dataset.csv",
+    metadata=metadata,
+    run_full_analysis=True
+)
+```
+
+### Standards and Validation
+
+The submission system automatically validates:
+
+- **Model Standards**: Interface compliance, performance thresholds, documentation
+- **Dataset Standards**: Format requirements, quality metrics, metadata completeness
+- **Integration Testing**: Full analysis pipeline compatibility
+- **Performance Benchmarking**: Comparison with existing methods
+
+For detailed information, see the [Submission System Tutorial](tutorials/06_submission_system.md).
 
 Results are saved in the `results/` directory with organized subdirectories.
 
