@@ -33,7 +33,11 @@ Before submitting, ensure you have:
 Your model must inherit from `BaseEstimatorModel` and implement the required methods:
 
 ```python
-from src.submission.model_submission import BaseEstimatorModel
+import sys
+from pathlib import Path
+sys.path.append(str(Path.cwd() / "src"))
+
+from submission.model_submission import BaseEstimatorModel
 import numpy as np
 
 class MyEstimatorModel(BaseEstimatorModel):
@@ -41,6 +45,8 @@ class MyEstimatorModel(BaseEstimatorModel):
         super().__init__(**kwargs)
         self.hurst_estimate = None
         self.alpha_estimate = None
+        self.confidence_intervals = {}
+        self.quality_metrics = {}
     
     def fit(self, data):
         """Fit the model to the data"""
@@ -62,18 +68,11 @@ class MyEstimatorModel(BaseEstimatorModel):
     
     def get_confidence_intervals(self):
         """Get confidence intervals for estimates"""
-        return {
-            "hurst": (lower_bound, upper_bound),
-            "alpha": (lower_bound, upper_bound)
-        }
+        return self.confidence_intervals
     
     def get_quality_metrics(self):
         """Get quality metrics for the estimation"""
-        return {
-            "r_squared": r_squared_value,
-            "std_error": standard_error,
-            "convergence": convergence_status
-        }
+        return self.quality_metrics
 ```
 
 ### Step 2: Prepare Model Metadata
@@ -81,14 +80,14 @@ class MyEstimatorModel(BaseEstimatorModel):
 Create metadata for your model:
 
 ```python
-from src.submission.model_submission import ModelMetadata
+from submission.model_submission import ModelMetadata
 
 metadata = ModelMetadata(
     name="MyVarianceTimeEstimator",
     version="1.0.0",
     author="Your Name",
     description="A variance-time plot based estimator for long-range dependence",
-    category="custom",  # or "dfa", "rs", "wavelet", "spectral"
+    algorithm_type="custom",  # or "dfa", "rs", "wavelet", "spectral"
     parameters={
         "min_scale": 4,
         "max_scale": 256,
@@ -99,340 +98,378 @@ metadata = ModelMetadata(
 )
 ```
 
+**Important Note**: The field is now `algorithm_type` instead of `category`.
+
 ### Step 3: Submit Your Model
 
 ```python
-from src.submission import SubmissionManager
+from submission.model_submission import ModelSubmission
 
-manager = SubmissionManager()
-result = manager.submit_model(
+# Create submission
+submission = ModelSubmission()
+
+# Submit the model
+result = submission.submit_model(
     model_file="path/to/your/model.py",
-    metadata=metadata,
-    run_full_analysis=True
+    metadata=metadata
 )
 
-print(f"Submission ID: {result.submission_id}")
-print(f"Status: {result.status.value}")
-print(f"Success: {result.success}")
+if result.is_valid:
+    print("✓ Model submitted successfully!")
+    print(f"Model ID: {result.model_id}")
+else:
+    print("✗ Model submission failed:")
+    for error in result.errors:
+        print(f"  - {error}")
 ```
 
 ## Dataset Submission
 
-### Step 1: Prepare Your Dataset
-
-Your dataset must be in one of the supported formats:
-- CSV (recommended)
-- JSON
-- Parquet
-- HDF5
-
-Required columns:
-- `timestamp`: Time index
-- `value`: The time series values
-
-Example CSV format:
-```csv
-timestamp,value
-2020-01-01 00:00:00,1.234
-2020-01-01 01:00:00,1.456
-2020-01-01 02:00:00,1.789
-...
-```
-
-### Step 2: Prepare Dataset Metadata
+### Step 1: Prepare Dataset Metadata
 
 ```python
-from src.submission.dataset_submission import DatasetMetadata
+from submission.dataset_submission import DatasetMetadata
 
-metadata = DatasetMetadata(
-    name="MyTimeSeriesData",
-    version="1.0.0",
-    author="Your Name",
-    description="Financial time series data for long-range dependence analysis",
-    category="financial",  # or "physiological", "environmental", "synthetic"
-    source="Yahoo Finance",
-    sampling_frequency="1 hour",
-    units="USD",
+dataset_metadata = DatasetMetadata(
+    name="MyFinancialDataset",
+    description="Daily stock returns for technology companies",
+    data_type="financial",
+    n_samples=1000,
+    n_features=5,
+    sampling_frequency="daily",
+    units="returns",
     collection_date="2024-01-01",
+    parameters={
+        "start_date": "2020-01-01",
+        "end_date": "2024-01-01",
+        "symbols": ["AAPL", "GOOGL", "MSFT"]
+    },
     file_path="path/to/your/dataset.csv"
 )
 ```
 
-### Step 3: Submit Your Dataset
+### Step 2: Submit Dataset
 
 ```python
-from src.submission import SubmissionManager
+from submission.dataset_submission import DatasetSubmission
 
-manager = SubmissionManager()
-result = manager.submit_dataset(
-    file_path="path/to/your/dataset.csv",
-    metadata=metadata,
-    run_full_analysis=True
+# Create submission
+submission = DatasetSubmission()
+
+# Submit the dataset
+result = submission.submit_dataset(
+    dataset_file="path/to/your/dataset.csv",
+    metadata=dataset_metadata
 )
 
-print(f"Submission ID: {result.submission_id}")
-print(f"Status: {result.status.value}")
-print(f"Success: {result.success}")
+if result.is_valid:
+    print("✓ Dataset submitted successfully!")
+    print(f"Dataset ID: {result.dataset_id}")
+else:
+    print("✗ Dataset submission failed:")
+    for error in result.errors:
+        print(f"  - {error}")
 ```
 
 ## Standards and Requirements
 
-### Model Standards
+### Model Requirements
 
-Your model must meet these requirements:
+1. **Inheritance**: Must inherit from `BaseEstimatorModel`
+2. **Required Methods**:
+   - `fit(data)`: Fit the model to data
+   - `estimate_hurst()`: Return Hurst exponent estimate
+   - `estimate_alpha()`: Return alpha parameter estimate
+   - `get_confidence_intervals()`: Return confidence intervals
+   - `get_quality_metrics()`: Return quality metrics
 
-1. **Interface Compliance**:
-   - Inherit from `BaseEstimatorModel`
-   - Implement all required methods
-   - Follow the expected parameter ranges
+3. **Return Values**:
+   - `estimate_hurst()`: Must return a float
+   - `estimate_alpha()`: Must return a float
+   - `get_confidence_intervals()`: Must return a dict with 'hurst' and 'alpha' keys
+   - `get_quality_metrics()`: Must return a dict
 
-2. **Performance Standards**:
-   - Minimum R² of 0.7
-   - Maximum standard error of 0.2
-   - Minimum convergence rate of 80%
-   - Maximum computation time of 300 seconds
+### Dataset Requirements
 
-3. **Documentation**:
-   - README.md with usage examples
-   - API documentation
-   - Parameter descriptions
-   - Performance characteristics
-
-### Dataset Standards
-
-Your dataset must meet these requirements:
-
-1. **Format Requirements**:
-   - Supported file format
-   - Required columns present
-   - Proper data types
-
-2. **Quality Requirements**:
-   - Minimum length: 100 points
-   - Maximum length: 100,000 points
-   - Maximum missing ratio: 10%
-   - Maximum outlier ratio: 5%
-   - Minimum quality score: 0.7
-
-3. **Metadata Requirements**:
-   - All required metadata fields
-   - Accurate descriptions
-   - Proper categorization
+1. **Format**: CSV, JSON, or NumPy (.npy) files
+2. **Data Quality**: No missing values, reasonable range
+3. **Metadata**: Complete description and parameters
+4. **Size**: Minimum 100 points, maximum 1,000,000 points
 
 ## Validation Process
 
-The submission system performs comprehensive validation:
-
 ### Model Validation
 
-1. **File Validation**:
-   - File exists and is readable
-   - Correct file extension
-   - File size within limits
+The system automatically validates your model:
 
-2. **Code Validation**:
-   - Syntax check
-   - Import validation
-   - Interface compliance
-
-3. **Testing**:
-   - Unit tests on synthetic data
-   - Performance benchmarks
-   - Integration tests
+1. **Syntax Check**: Ensures Python code is valid
+2. **Import Check**: Verifies all dependencies can be imported
+3. **Class Check**: Confirms inheritance from `BaseEstimatorModel`
+4. **Method Check**: Validates required methods exist
+5. **Type Check**: Ensures return types are correct
 
 ### Dataset Validation
 
-1. **Format Validation**:
-   - File format check
-   - Column structure validation
-   - Data type verification
-
-2. **Content Validation**:
-   - Data length requirements
-   - Missing value analysis
-   - Outlier detection
-   - Quality scoring
-
-3. **Testing**:
-   - Basic statistical tests
-   - Long-range dependence analysis
-   - Robustness testing
+1. **File Format**: Checks file can be loaded
+2. **Data Structure**: Validates data dimensions and types
+3. **Quality Check**: Identifies potential issues
+4. **Metadata Validation**: Ensures completeness
 
 ## Integration Testing
 
-After validation, your submission undergoes integration testing:
+### Test Your Model
 
-### Model Integration
+```python
+from submission.model_submission import ModelTester
 
-1. **Full Analysis Pipeline**:
-   - Test on multiple synthetic datasets
-   - Compare with existing models
-   - Performance benchmarking
+# Create tester
+tester = ModelTester()
 
-2. **Comparison Analysis**:
-   - Accuracy comparison
-   - Speed comparison
-   - Memory efficiency
+# Test with synthetic data
+test_result = tester.test_model(
+    model_file="path/to/your/model.py",
+    test_data=test_dataset
+)
 
-### Dataset Integration
+print(f"Test Results:")
+print(f"  Hurst estimate: {test_result.hurst_estimate:.3f}")
+print(f"  Alpha estimate: {test_result.alpha_estimate:.3f}")
+print(f"  Processing time: {test_result.processing_time:.3f}s")
+print(f"  Memory usage: {test_result.memory_usage:.1f}MB")
+```
 
-1. **Multi-Model Analysis**:
-   - Test with all available models
-   - Consistency checking
-   - Result comparison
+### Test Your Dataset
 
-2. **Quality Assessment**:
-   - Long-range dependence detection
-   - Stability analysis
-   - Recommendation generation
+```python
+from submission.dataset_submission import DatasetTester
+
+# Create tester
+tester = DatasetTester()
+
+# Test dataset quality
+test_result = tester.test_dataset(
+    dataset_file="path/to/your/dataset.csv"
+)
+
+print(f"Dataset Test Results:")
+print(f"  Data quality score: {test_result.quality_score:.2f}")
+print(f"  Missing values: {test_result.missing_values}")
+print(f"  Outliers detected: {test_result.outliers_detected}")
+```
 
 ## Best Practices
 
-### For Model Development
+### 1. Model Design
 
-1. **Follow Standards**:
-   - Use the provided base class
-   - Implement all required methods
-   - Follow naming conventions
+- **Efficiency**: Optimize for speed and memory usage
+- **Robustness**: Handle edge cases gracefully
+- **Documentation**: Include clear docstrings
+- **Testing**: Test with various data types and sizes
 
-2. **Optimize Performance**:
-   - Efficient algorithms
-   - Memory management
-   - Error handling
+### 2. Dataset Preparation
 
-3. **Documentation**:
-   - Clear docstrings
-   - Usage examples
-   - Parameter explanations
+- **Clean Data**: Remove or handle missing values
+- **Normalization**: Consider if data needs scaling
+- **Documentation**: Document data source and processing
+- **Validation**: Verify data quality before submission
 
-### For Dataset Preparation
+### 3. Submission Process
 
-1. **Data Quality**:
-   - Clean and preprocess data
-   - Handle missing values
-   - Remove outliers appropriately
-
-2. **Metadata**:
-   - Complete and accurate metadata
-   - Clear descriptions
-   - Proper categorization
-
-3. **Format**:
-   - Use standard formats
-   - Consistent timestamps
-   - Proper data types
+- **Test Locally**: Ensure your model/dataset works before submitting
+- **Check Dependencies**: List all required packages
+- **Provide Examples**: Include usage examples in metadata
+- **Version Control**: Use semantic versioning
 
 ## Troubleshooting
 
-### Common Model Issues
+### Common Issues
 
-1. **Import Errors**:
-   ```
-   Error: Failed to import model
-   Solution: Check dependencies and import statements
-   ```
+**Issue**: `ModuleNotFoundError` during validation
+**Solution**: Ensure all dependencies are listed in `requirements.txt`
 
-2. **Interface Errors**:
-   ```
-   Error: Missing required methods
-   Solution: Implement all required methods from BaseEstimatorModel
-   ```
+**Issue**: Model fails validation tests
+**Solution**: Check that all required methods return correct types
 
-3. **Performance Issues**:
-   ```
-   Error: Model performance below threshold
-   Solution: Optimize algorithm and check parameter ranges
-   ```
+**Issue**: Dataset too large
+**Solution**: Consider sampling or compression
 
-### Common Dataset Issues
-
-1. **Format Errors**:
-   ```
-   Error: Unsupported file format
-   Solution: Use CSV, JSON, Parquet, or HDF5 format
-   ```
-
-2. **Column Errors**:
-   ```
-   Error: Missing required column 'value'
-   Solution: Ensure 'timestamp' and 'value' columns are present
-   ```
-
-3. **Quality Issues**:
-   ```
-   Error: Dataset quality below threshold
-   Solution: Clean data and reduce missing/outlier ratios
-   ```
+**Issue**: Import errors in model file
+**Solution**: Use relative imports or add `src` to Python path
 
 ### Getting Help
 
-If you encounter issues:
-
-1. Check the validation results for specific error messages
-2. Review the standards and requirements
-3. Run the demo script to see working examples
-4. Check the logs in `results/submissions/`
+1. **Check Logs**: Review validation error messages
+2. **Test Locally**: Run validation tests on your machine
+3. **Review Examples**: Study existing successful submissions
+4. **Create Issue**: Report bugs on GitHub
 
 ## Example: Complete Submission
 
-Here's a complete example of submitting a model:
+Here's a complete example of submitting a custom estimator:
 
 ```python
 #!/usr/bin/env python3
-"""Example model submission"""
+"""
+Example: Custom Variance-Time Estimator
+"""
 
 import sys
 from pathlib import Path
-sys.path.append(str(Path(__file__).parent.parent / "src"))
+sys.path.append(str(Path.cwd() / "src"))
 
-from submission import SubmissionManager, ModelMetadata
+import numpy as np
+from submission.model_submission import BaseEstimatorModel, ModelMetadata, ModelSubmission
 
-# Create model metadata
-metadata = ModelMetadata(
-    name="ExampleEstimator",
-    version="1.0.0",
-    author="John Doe",
-    description="Example estimator for tutorial",
-    category="custom",
-    parameters={"scale_factor": 1.0},
-    dependencies=["numpy"],
-    file_path="models/example_model.py"
-)
+class VarianceTimeEstimator(BaseEstimatorModel):
+    """Custom estimator using variance-time plot analysis."""
+    
+    def __init__(self, min_scale=4, max_scale=256, **kwargs):
+        super().__init__(**kwargs)
+        self.min_scale = min_scale
+        self.max_scale = max_scale
+        self.hurst_estimate = None
+        self.alpha_estimate = None
+        self.confidence_intervals = {}
+        self.quality_metrics = {}
+    
+    def fit(self, data):
+        """Fit the model using variance-time analysis."""
+        if not self.validate_input(data):
+            raise ValueError("Invalid input data")
+        
+        data = self.preprocess_data(data)
+        n = len(data)
+        
+        # Generate scales
+        scales = [2**i for i in range(int(np.log2(self.min_scale)), 
+                                    int(np.log2(min(self.max_scale, n//4)))]
+        
+        # Calculate variances for each scale
+        variances = []
+        for scale in scales:
+            if scale < n:
+                chunks = [data[i:i+scale] for i in range(0, n-scale+1, scale)]
+                chunk_vars = [chunk.var() for chunk in chunks if len(chunk) == scale]
+                if chunk_vars:
+                    variances.append(np.mean(chunk_vars))
+                else:
+                    variances.append(np.nan)
+            else:
+                variances.append(np.nan)
+        
+        # Remove NaN values
+        valid_scales = [s for s, v in zip(scales, variances) if not np.isnan(v)]
+        valid_variances = [v for v in variances if not np.isnan(v)]
+        
+        if len(valid_scales) < 3:
+            raise ValueError("Insufficient valid scales for analysis")
+        
+        # Fit power law: variance ~ scale^beta
+        log_scales = np.log(valid_scales)
+        log_variances = np.log(valid_variances)
+        
+        # Linear regression
+        coeffs = np.polyfit(log_scales, log_variances, 1)
+        beta = coeffs[0]
+        
+        # Calculate estimates
+        self.hurst_estimate = 1 - beta / 2
+        self.alpha_estimate = 2 * self.hurst_estimate
+        
+        # Calculate confidence intervals
+        residuals = log_variances - np.polyval(coeffs, log_scales)
+        std_error = np.sqrt(np.mean(residuals**2))
+        
+        self.confidence_intervals = {
+            "hurst": (max(0, self.hurst_estimate - 2*std_error), 
+                     min(1, self.hurst_estimate + 2*std_error)),
+            "alpha": (max(0, self.alpha_estimate - 2*std_error), 
+                     min(2, self.alpha_estimate + 2*std_error))
+        }
+        
+        # Calculate quality metrics
+        r_squared = 1 - np.sum(residuals**2) / np.sum((log_variances - np.mean(log_variances))**2)
+        self.quality_metrics = {
+            "r_squared": r_squared,
+            "std_error": std_error,
+            "n_scales": len(valid_scales)
+        }
+        
+        self.fitted = True
+        return self
+    
+    def estimate_hurst(self):
+        """Estimate the Hurst exponent."""
+        if not self.fitted:
+            raise ValueError("Model must be fitted first")
+        return self.hurst_estimate
+    
+    def estimate_alpha(self):
+        """Estimate the alpha parameter."""
+        if not self.fitted:
+            raise ValueError("Model must be fitted first")
+        return self.alpha_estimate
+    
+    def get_confidence_intervals(self):
+        """Get confidence intervals for estimates."""
+        return self.confidence_intervals
+    
+    def get_quality_metrics(self):
+        """Get quality metrics for the estimation."""
+        return self.quality_metrics
 
-# Submit model
-manager = SubmissionManager()
-result = manager.submit_model(
-    model_file="models/example_model.py",
-    metadata=metadata,
-    run_full_analysis=True
-)
+# Submit the model
+def submit_custom_estimator():
+    """Submit the custom variance-time estimator."""
+    
+    # Create metadata
+    metadata = ModelMetadata(
+        name="VarianceTimeEstimator",
+        version="1.0.0",
+        author="Your Name",
+        description="Custom estimator using variance-time plot analysis for long-range dependence",
+        algorithm_type="custom",
+        parameters={
+            "min_scale": 4,
+            "max_scale": 256,
+            "method": "variance_time"
+        },
+        dependencies=["numpy"],
+        file_path="variance_time_estimator.py"
+    )
+    
+    # Create submission
+    submission = ModelSubmission()
+    
+    # Submit
+    result = submission.submit_model(
+        model_file="variance_time_estimator.py",
+        metadata=metadata
+    )
+    
+    if result.is_valid:
+        print("✓ Custom estimator submitted successfully!")
+        print(f"Model ID: {result.model_id}")
+        return result
+    else:
+        print("✗ Submission failed:")
+        for error in result.errors:
+            print(f"  - {error}")
+        return None
 
-# Check results
-if result.success:
-    print("✅ Model submitted successfully!")
-    print(f"Submission ID: {result.submission_id}")
-else:
-    print("❌ Submission failed:")
-    print(f"Error: {result.message}")
-    for validation in result.validation_results:
-        if not validation.passed:
-            print(f"  - {validation.message}")
+if __name__ == "__main__":
+    submit_custom_estimator()
 ```
 
 ## Next Steps
 
 After successful submission:
 
-1. **Monitor Status**: Check submission status using the submission ID
-2. **Review Results**: Examine validation and test results
-3. **Integration**: Approved submissions are automatically integrated
-4. **Updates**: You can update your submission with new versions
+1. **Monitor Performance**: Check how your model performs on benchmark datasets
+2. **Iterate**: Improve based on feedback and results
+3. **Collaborate**: Share insights with the community
+4. **Contribute**: Help improve the benchmark system
 
-## Conclusion
+---
 
-The submission system provides a robust framework for contributing to the long-range dependence benchmark. By following the standards and best practices outlined in this tutorial, you can successfully submit high-quality models and datasets that enhance the benchmark's capabilities.
-
-For more information, see:
-- [API Documentation](api_documentation.md)
-- [Standards Reference](standards_reference.md)
-- [Demo Scripts](scripts/demo_submission.py)
+**You're now ready to contribute to the Long-Range Dependence benchmark!** 🎉

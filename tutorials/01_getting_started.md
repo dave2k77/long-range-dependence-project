@@ -59,121 +59,123 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path.cwd() / "src"))
 
-from data_processing import SyntheticDataGenerator
+from data_processing.synthetic_generator import SyntheticDataGenerator
 
 # Create a data generator
 generator = SyntheticDataGenerator(random_state=42)
 
-# Generate a simple ARFIMA process
+# Generate a simple ARFIMA process using the new convenience method
 arfima_signal = generator.generate_arfima(n=1000, d=0.3)
 print(f"Generated ARFIMA signal with {len(arfima_signal)} points")
+
+# You can also generate other types of synthetic data
+fbm_signal = generator.generate_fbm(n=1000, hurst=0.7)
+fgn_signal = generator.generate_fgn(n=1000, hurst=0.6)
+print(f"Generated fBm signal with {len(fbm_signal)} points")
+print(f"Generated fGn signal with {len(fgn_signal)} points")
 ```
 
 ### Step 2: Run Basic Analysis
 
 ```python
-from analysis import DFAnalysis, RSAnalysis
+from analysis.dfa_analysis import dfa
+from analysis.rs_analysis import rs_analysis
 
-# Initialize analysis objects
-dfa = DFAnalysis()
-rs = RSAnalysis()
+# Analyze the signal using the updated function-based approach
+scales, flucts, dfa_summary = dfa(arfima_signal, order=1)
+scales_rs, rs_values, rs_summary = rs_analysis(arfima_signal)
 
-# Analyze the signal
-dfa_result = dfa.analyze(arfima_signal)
-rs_result = rs.analyze(arfima_signal)
-
-print(f"DFA Hurst exponent: {dfa_result['hurst']:.3f}")
-print(f"R/S Hurst exponent: {rs_result['hurst']:.3f}")
+print(f"DFA Hurst exponent: {dfa_summary.hurst:.3f}")
+print(f"R/S Hurst exponent: {rs_summary.hurst:.3f}")
 ```
 
 ### Step 3: Visualize Results
 
 ```python
-from visualisation import time_series_plots, fractal_plots
+import matplotlib.pyplot as plt
 
 # Plot the time series
-time_series_plots.plot_time_series(arfima_signal, title="ARFIMA Process (d=0.3)")
+plt.figure(figsize=(12, 8))
+
+plt.subplot(2, 2, 1)
+plt.plot(arfima_signal[:200])
+plt.title("ARFIMA Process (d=0.3) - First 200 points")
+plt.xlabel("Time")
+plt.ylabel("Value")
+plt.grid(True, alpha=0.3)
 
 # Plot DFA results
-fractal_plots.plot_dfa_results(dfa_result, title="DFA Analysis Results")
+plt.subplot(2, 2, 2)
+plt.loglog(scales, flucts, 'o-', label='DFA')
+plt.xlabel("Scale")
+plt.ylabel("Fluctuation")
+plt.title("DFA Analysis Results")
+plt.legend()
+plt.grid(True, alpha=0.3)
+
+# Plot R/S results
+plt.subplot(2, 2, 3)
+plt.loglog(scales_rs, rs_values, 's-', label='R/S')
+plt.xlabel("Scale")
+plt.ylabel("R/S Value")
+plt.title("R/S Analysis Results")
+plt.legend()
+plt.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
 ```
 
-## 📊 Understanding the Results
+## 🔧 Advanced Usage
 
-### Hurst Exponent Interpretation
+### Using the ARFIMA Model
 
-- **H = 0.5**: Random walk (no long-range dependence)
-- **0.5 < H < 1**: Long-range dependence (persistent)
-- **0 < H < 0.5**: Anti-persistent behavior
-
-### What the Analysis Tells Us
-
-1. **DFA (Detrended Fluctuation Analysis)**:
-   - Robust to non-stationarities
-   - Good for detecting long-range dependence
-   - Works well with trends and seasonality
-
-2. **R/S Analysis (Rescaled Range)**:
-   - Classical method for Hurst exponent estimation
-   - Sensitive to non-stationarities
-   - Good baseline for comparison
-
-## 🔧 Common Issues and Solutions
-
-### Issue 1: Import Errors
-**Problem**: `ModuleNotFoundError` when importing from `src`
-**Solution**: Ensure you've added the src directory to your Python path:
 ```python
-import sys
-from pathlib import Path
-sys.path.append(str(Path.cwd() / "src"))
+from analysis.arfima_modelling import ARFIMAModel
+
+# Create and fit an ARFIMA model
+model = ARFIMAModel(p=1, d=0.3, q=1, fast_mode=True)
+fitted_model = model.fit(arfima_signal)
+
+# Get estimates
+hurst_est = fitted_model.estimate_hurst()
+alpha_est = fitted_model.estimate_alpha()
+conf_intervals = fitted_model.get_confidence_intervals()
+
+print(f"Estimated Hurst exponent: {hurst_est:.3f}")
+print(f"Estimated alpha: {alpha_est:.3f}")
+print(f"Confidence intervals: {conf_intervals}")
 ```
 
-### Issue 2: Memory Errors with Large Datasets
-**Problem**: Out of memory when analyzing large time series
-**Solution**: Use smaller segments or increase system memory:
+### Running Multiple Analyses
+
 ```python
-# Analyze in segments
-segment_size = 1000
-for i in range(0, len(data), segment_size):
-    segment = data[i:i+segment_size]
-    result = dfa.analyze(segment)
+from analysis.mfdfa_analysis import mfdfa
+from analysis.wavelet_analysis import wavelet_leaders_estimation
+
+# Run multiple analysis methods
+scales_mf, fq, mfdfa_summary = mfdfa(arfima_signal)
+scales_wav, hq, wavelet_summary = wavelet_leaders_estimation(arfima_signal)
+
+print(f"MFDFA Hurst: {mfdfa_summary.hurst:.3f}")
+print(f"Wavelet Hurst: {wavelet_summary.hurst:.3f}")
 ```
 
-### Issue 3: Convergence Issues
-**Problem**: Analysis doesn't converge or gives unrealistic results
-**Solution**: Check data quality and preprocessing:
-```python
-# Check for NaN or infinite values
-import numpy as np
-print(f"NaN values: {np.isnan(data).sum()}")
-print(f"Infinite values: {np.isinf(data).sum()}")
-```
+## 📚 Next Steps
 
-## 📈 Next Steps
+- **Tutorial 2**: Learn about synthetic data generation in detail
+- **Tutorial 3**: Explore advanced analysis methods
+- **Tutorial 4**: Understand statistical validation
+- **Tutorial 5**: Create visualizations and plots
+- **Tutorial 6**: Submit your own models and datasets
 
-Now that you've completed your first analysis, you can:
-
-1. **Explore Different Methods**: Try Higuchi, MFDFA, or spectral analysis
-2. **Generate More Data**: Use the synthetic data generator for different signal types
-3. **Analyze Real Data**: Load and analyze your own time series data
-4. **Run Validation**: Use bootstrap and Monte Carlo methods for robust results
-
-## 📚 Additional Resources
-
-- **Tutorial 2**: [Synthetic Data Generation](02_synthetic_data_generation.md)
-- **Tutorial 3**: [Advanced Analysis Methods](03_advanced_analysis.md)
-- **Tutorial 4**: [Statistical Validation](04_statistical_validation.md)
-- **Tutorial 5**: [Visualization and Reporting](05_visualization.md)
-
-## 🆘 Getting Help
+## 🆘 Troubleshooting
 
 If you encounter issues:
 
-1. Check the [GitHub Issues](https://github.com/dave2k77/long-range-dependence-project/issues)
-2. Review the [API Documentation](../docs/api_documentation.md)
-3. Run the test suite: `python -m pytest tests/ -v`
+1. **Import errors**: Make sure you've added `src` to your Python path
+2. **Missing dependencies**: Run `pip install -r requirements.txt`
+3. **Data generation issues**: Check that your random seed is set for reproducibility
+4. **Analysis failures**: Ensure your data has sufficient length (recommend at least 500 points)
 
----
-
-**Congratulations!** You've successfully set up and run your first long-range dependence analysis. 🎉
+For more help, check the project documentation or create an issue on GitHub.
