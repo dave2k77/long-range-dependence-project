@@ -214,6 +214,17 @@ Check the statistical properties of generated signals.
 ```python
 import numpy as np
 
+# First, let's create a contaminated signal for comparison
+from data_processing.synthetic_generator import DataContaminator
+
+# Initialize contaminator
+contaminator = DataContaminator(random_state=42)
+
+# Create a contaminated version of our ARFIMA signal
+contaminated_signal = contaminator.add_polynomial_trend(arfima_medium, degree=1, amplitude=0.1)
+contaminated_signal = contaminator.add_periodicity(contaminated_signal, 50, amplitude=0.2)
+contaminated_signal = contaminator.add_outliers(contaminated_signal, fraction=0.02, magnitude=3.0)
+
 def analyze_signal_properties(signal, name):
     """Analyze basic properties of a generated signal."""
     print(f"\n{name} Properties:")
