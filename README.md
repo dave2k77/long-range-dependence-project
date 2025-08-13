@@ -161,6 +161,12 @@ python scripts/demo_synthetic_data.py
 
 # ARFIMA modeling demo
 python scripts/demo_arfima.py
+
+# Parallel computation demo (Joblib - recommended)
+python scripts/demo_joblib_parallel.py
+
+# High-performance parallel computation demo (Numba)
+python scripts/demo_numba_parallel.py
 ```
 
 ### Jupyter Notebooks
@@ -207,6 +213,20 @@ from src.analysis import MFDFAAnalysis
 mfdfa = MFDFAAnalysis()
 result = mfdfa.analyze(time_series)
 print(f"Multifractal spectrum: {result['spectrum']}")
+```
+
+### Parallel Computation
+```python
+# Joblib-based parallel processing (recommended)
+from src.analysis.joblib_parallel_analysis import joblib_parallel_analysis
+
+datasets = {'data1': time_series1, 'data2': time_series2}
+results = joblib_parallel_analysis(datasets, methods=['dfa', 'higuchi'])
+
+# Numba-based high-performance processing
+from src.analysis.numba_parallel_analysis import numba_parallel_analysis
+
+results = numba_parallel_analysis(datasets, methods=['dfa', 'higuchi'])
 ```
 
 ## 📊 Synthetic Data Generation

@@ -918,7 +918,21 @@ data = np.memmap('large_file.dat', dtype=np.float64, mode='r')
 
 ### 9.2 Parallel Processing
 
-#### Multiprocessing
+The project supports multiple parallel processing approaches:
+
+#### Joblib (Recommended)
+- **Purpose**: Stable, reliable parallel processing
+- **Installation**: `pip install joblib>=1.2.0`
+- **Usage**: Primary parallel computation method
+- **Features**: Progress tracking, error handling, memory management
+
+#### Numba (High Performance)
+- **Purpose**: JIT-compiled high-performance computation
+- **Installation**: `pip install numba>=0.56.0`
+- **Usage**: Performance-critical applications
+- **Features**: Automatic parallelization, GPU support
+
+#### Multiprocessing (Built-in)
 
 ```python
 from multiprocessing import Pool

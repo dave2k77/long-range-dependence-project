@@ -12,6 +12,9 @@ This document provides comprehensive API documentation for the Long-Range Depend
    - [Wavelet Analysis](#wavelet-analysis-srcanalysiswavelet_analysispy)
    - [Spectral Analysis](#spectral-analysis-srcanalysisspectral_analysispy)
    - [Statistical Validation](#statistical-validation-srcanalysisstatistical_validationpy)
+   - [Parallel Computation](#parallel-computation)
+     - [Joblib Parallel Analysis](#joblib-parallel-analysis-srcanalysisjoblib_parallel_analysispy)
+     - [Numba Parallel Analysis](#numba-parallel-analysis-srcanalysisnumba_parallel_analysispy)
 4. [Statistical Validation Module](#statistical-validation-module)
 5. [Visualization Module](#visualization-module)
    - [Time Series Plots](#time-series-plots-srcvisualisationtime_series_plotspy)
@@ -504,6 +507,66 @@ summary = setup_project_data(
 ```
 
 ## Analysis Module
+
+The analysis module provides implementations of various long-range dependence analysis methods.
+
+### Parallel Computation
+
+The project includes two parallel computation implementations that provide stable alternatives to JAX:
+
+#### Joblib Parallel Analysis (`src/analysis/joblib_parallel_analysis.py`)
+
+**Recommended for most use cases** - Provides stable, reliable parallel processing with excellent error handling.
+
+```python
+from src.analysis.joblib_parallel_analysis import joblib_parallel_analysis, create_joblib_config
+
+# Create configuration
+config = create_joblib_config(n_jobs=4, verbose=1)
+
+# Analyze multiple datasets in parallel
+datasets = {'data1': time_series1, 'data2': time_series2}
+results = joblib_parallel_analysis(
+    datasets=datasets,
+    methods=['dfa', 'higuchi', 'rs'],
+    config=config
+)
+```
+
+**Key Features:**
+- ✅ **Stable and reliable** - No compilation issues
+- ✅ **Easy debugging** - Excellent error handling
+- ✅ **Progress tracking** - Built-in logging and progress bars
+- ✅ **Automatic memory management** - No memory leaks
+- ✅ **Production-ready** - Mature and well-tested
+
+#### Numba Parallel Analysis (`src/analysis/numba_parallel_analysis.py`)
+
+**For performance-critical applications** - Provides JIT-compiled high-performance computation.
+
+```python
+from src.analysis.numba_parallel_analysis import numba_parallel_analysis, create_numba_config
+
+# Create configuration
+config = create_numba_config(num_workers=4, use_jit=True)
+
+# High-performance parallel analysis
+results = numba_parallel_analysis(
+    datasets=datasets,
+    methods=['dfa', 'higuchi'],
+    config=config
+)
+```
+
+**Key Features:**
+- ⚡ **High performance** - JIT compilation for speed
+- ✅ **Stable** - Good error messages and debugging
+- 🔧 **Easy to implement** - Simple @jit decorators
+- 📈 **Scalable** - Good for CPU-bound tasks
+
+**Comparison with JAX:**
+- **Joblib/Numba**: Stable, reliable, easy to debug
+- **JAX**: Complex, experimental, difficult debugging
 
 ### Fractal Analysis (`src/analysis/fractal_analysis.py`)
 
