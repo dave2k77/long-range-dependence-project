@@ -104,7 +104,7 @@ This document provides comprehensive information about software requirements, de
 |---------|----------|-----------|
 | Size | ~3GB | ~400MB |
 | Packages | 1500+ pre-installed | Minimal |
-| GUI | Anaconda Navigator | Command line only |
+| Interface | Anaconda Navigator | Command line only |
 | Use Case | Data science beginners | Experienced users |
 
 ### 2.3 Virtual Environment

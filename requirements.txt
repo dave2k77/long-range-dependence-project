@@ -10,10 +10,18 @@ requests>=2.25.0
 yfinance>=0.1.70
 PyYAML>=6.0
 
-# GUI dependencies
-tkinter-tooltip>=2.0.0
-ttkthemes>=3.2.0
-pillow>=8.0.0
+# JAX and parallel computation
+jax>=0.4.0
+jaxlib>=0.4.0
+optax>=0.1.0
+chex>=0.1.0
+jaxtyping>=0.2.0
+equinox>=0.10.0
+numba>=0.56.0
+joblib>=1.2.0
+multiprocessing-logging>=0.3.0
+
+
 
 # Testing dependencies
 pytest>=6.0.0

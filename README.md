@@ -47,8 +47,7 @@ This project provides a complete toolkit for long-range dependence (LRD) analysi
 - **Containerization**: Docker support for development and deployment
 - **Pre-commit Hooks**: Automated code quality enforcement
 
-### GUI Interface
-- **Modern Tkinter Interface**: User-friendly graphical interface
+
 - **Data Management**: Load, view, and manage datasets
 - **Analysis Pipeline**: Run different LRD analysis methods
 - **Synthetic Data Generation**: Generate and test synthetic data
@@ -64,7 +63,7 @@ long-range-dependence-project/
 │   ├── analysis/                 # Analysis methods
 │   ├── data_processing/          # Data handling and synthetic generation
 │   ├── submission/               # Model and dataset submission system
-│   ├── gui/                      # Graphical user interface
+
 │   └── visualisation/            # Plotting and visualization
 ├── scripts/                      # Execution scripts
 ├── notebooks/                    # Jupyter notebooks
@@ -162,9 +161,6 @@ python scripts/demo_synthetic_data.py
 
 # ARFIMA modeling demo
 python scripts/demo_arfima.py
-
-# Launch GUI application
-python scripts/run_gui.py
 ```
 
 ### Jupyter Notebooks
@@ -173,22 +169,7 @@ python scripts/run_gui.py
 - `notebooks/04_arfima_modelling.ipynb`: ARFIMA modeling examples
 - `notebooks/05_dfa_analysis.ipynb`: DFA analysis tutorial
 
-### Graphical User Interface
 
-The project includes a modern GUI interface for easy interaction:
-
-```bash
-# Launch the GUI
-python scripts/run_gui.py
-```
-
-The GUI provides:
-- **Data Manager**: Load and visualize datasets with multiple display options
-- **Analysis**: Run LRD analysis methods with parameter control and real-time results
-- **Synthetic Data**: Generate and test synthetic time series with various contamination types
-- **Submission**: Submit new models and datasets to the benchmark with validation
-- **Results**: View and export analysis results with comparison tools
-- **Configuration**: Manage project settings and parameters with validation
 
 ## 🔬 Analysis Methods
 

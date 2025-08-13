@@ -466,7 +466,7 @@ class SyntheticDataGenerator:
             
             # Periodicity
             contaminated_signals[f'{base_name}_periodic'] = self.contaminator.add_periodicity(
-                base_signal, frequency=50, amplitude=0.2
+                base_signal, 50, amplitude=0.2
             )
             
             # Outliers
@@ -482,7 +482,7 @@ class SyntheticDataGenerator:
             # Combined contamination
             combined = base_signal.copy()
             combined = self.contaminator.add_polynomial_trend(combined, degree=1, amplitude=0.05)
-            combined = self.contaminator.add_periodicity(combined, frequency=100, amplitude=0.1)
+            combined = self.contaminator.add_periodicity(combined, 100, amplitude=0.1)
             combined = self.contaminator.add_outliers(combined, fraction=0.01, magnitude=3.0)
             contaminated_signals[f'{base_name}_combined'] = combined
         
