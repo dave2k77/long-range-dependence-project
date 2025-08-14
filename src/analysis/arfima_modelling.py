@@ -7,7 +7,7 @@ including parameter estimation, forecasting, and diagnostics.
 
 import numpy as np
 import pandas as pd
-from scipy import optimize, stats
+from scipy import optimize, stats, signal
 from scipy.special import gamma
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 import warnings
@@ -93,23 +93,13 @@ class ARFIMAModel:
         # Ensure d is in valid range
         d = np.clip(d, 0.01, 0.49)
         
-        # Use FFT for efficient convolution
-        # Compute weights using vectorized operations with bounds checking
-        k = np.arange(n)
-        
-        # Check for valid gamma function arguments
-        valid_k = k + 1 - d > 0
+        # Use recursive computation for better numerical stability
         weights = np.zeros(n)
-        
-        # Only compute weights for valid k values
-        weights[valid_k] = np.exp(
-            np.log(gamma(k[valid_k] + 1)) - 
-            np.log(gamma(k[valid_k] + 1 - d)) - 
-            np.log(gamma(1 - d))
-        )
-        
-        # Set first weight to 1
         weights[0] = 1.0
+        
+        # Compute weights recursively: w_k = w_{k-1} * (k - 1 - d) / k
+        for k in range(1, n):
+            weights[k] = weights[k - 1] * (k - 1 - d) / k
         
         # Apply convolution using FFT
         x_fft = np.fft.fft(x)
@@ -177,11 +167,16 @@ class ARFIMAModel:
         if d == 0:
             return x.copy()
         
-        # Use FFT for efficient convolution
-        # Compute weights using vectorized operations
-        k = np.arange(n)
-        weights = np.exp(np.log(gamma(k + d)) - np.log(gamma(k + 1)) - np.log(gamma(d)))
+        # Ensure d is in valid range
+        d = np.clip(d, 0.01, 0.49)
+        
+        # Use recursive computation for better numerical stability
+        weights = np.zeros(n)
         weights[0] = 1.0
+        
+        # Compute weights recursively: w_k = w_{k-1} * (d + k - 1) / k
+        for k in range(1, n):
+            weights[k] = weights[k - 1] * (d + k - 1) / k
         
         # Apply convolution using FFT
         x_fft = np.fft.fft(x)
@@ -614,6 +609,63 @@ class ARFIMAModel:
         
         return d_est
     
+    def _estimate_d_spectral(self, y: np.ndarray) -> float:
+        """
+        Estimate the fractional differencing parameter d using spectral methods.
+        
+        Parameters:
+        -----------
+        y : np.ndarray
+            Time series data
+            
+        Returns:
+        --------
+        float
+            Estimated d parameter
+        """
+        # Remove mean
+        y_centered = y - np.mean(y)
+        
+        # Compute periodogram
+        freqs, periodogram = signal.periodogram(y_centered, detrend=False)
+        
+        # Use only positive frequencies
+        pos_mask = freqs > 0
+        freqs_pos = freqs[pos_mask]
+        periodogram_pos = periodogram[pos_mask]
+        
+        # Use only low frequencies for estimation
+        low_freq_mask = freqs_pos < 0.1
+        if np.sum(low_freq_mask) < 5:
+            # Fallback to simple estimate
+            return 0.3
+        
+        freqs_low = freqs_pos[low_freq_mask]
+        periodogram_low = periodogram_pos[low_freq_mask]
+        
+        # Log-log regression: log(I(f)) = log(C) - 2*d*log(f)
+        log_freqs = np.log(freqs_low)
+        log_periodogram = np.log(periodogram_low)
+        
+        # Remove any infinite or NaN values
+        valid_mask = np.isfinite(log_freqs) & np.isfinite(log_periodogram)
+        if np.sum(valid_mask) < 3:
+            return 0.3
+        
+        log_freqs_valid = log_freqs[valid_mask]
+        log_periodogram_valid = log_periodogram[valid_mask]
+        
+        # Linear regression
+        slope, _, _, _, _ = stats.linregress(log_freqs_valid, log_periodogram_valid)
+        
+        # Extract d: d = -slope / 2
+        d_est = -slope / 2
+        
+        # Ensure d is in reasonable range
+        d_est = np.clip(d_est, 0.01, 0.49)
+        
+        return d_est
+    
     def fit(self, y: Union[np.ndarray, pd.Series], 
             method: str = 'mle', 
             initial_params: Optional[np.ndarray] = None,
@@ -654,7 +706,13 @@ class ARFIMAModel:
         # Set initial parameters if not provided
         if initial_params is None:
             initial_params = np.zeros(1 + self.p + self.q + 2)  # d, ar, ma, intercept, log_sigma2
-            initial_params[0] = 0.3  # Initial d
+            # Use spectral estimation for initial d
+            initial_params[0] = self._estimate_d_spectral(y)
+            # Set AR/MA parameters to small values
+            if self.p > 0:
+                initial_params[1:1+self.p] = 0.1
+            if self.q > 0:
+                initial_params[1+self.p:1+self.p+self.q] = 0.1
             initial_params[-2] = np.mean(y)  # Initial intercept
             initial_params[-1] = np.log(np.var(y))  # Initial log variance
         
@@ -735,9 +793,14 @@ class ARFIMAModel:
                 
                 if not result.success:
                     warnings.warn(f"Optimization completed but may not be optimal: {result.message}")
+                
+                # Validate fitted parameters
+                if not np.all(np.isfinite(fitted_params)):
+                    warnings.warn("Non-finite parameters detected, using initial parameters")
+                    fitted_params = initial_params
         
         # Extract fitted parameters
-        d = fitted_params[0]
+        d = np.clip(fitted_params[0], 0.01, 0.49)  # Ensure d is in valid range
         ar_start = 1
         ar_end = ar_start + self.p
         ma_start = ar_end
@@ -747,6 +810,16 @@ class ARFIMAModel:
         ma_params = fitted_params[ma_start:ma_end] if self.q > 0 else None
         intercept = fitted_params[ma_end] if self.q > 0 else fitted_params[ar_end]
         sigma2 = np.exp(fitted_params[-1])
+        
+        # Ensure parameters are finite
+        if ar_params is not None and not np.all(np.isfinite(ar_params)):
+            ar_params = np.zeros(self.p)
+        if ma_params is not None and not np.all(np.isfinite(ma_params)):
+            ma_params = np.zeros(self.q)
+        if not np.isfinite(intercept):
+            intercept = np.mean(y)
+        if not np.isfinite(sigma2) or sigma2 <= 0:
+            sigma2 = np.var(y)
         
         # Store fitted parameters
         self.params = ARFIMAParams(

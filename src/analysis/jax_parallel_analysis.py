@@ -88,6 +88,12 @@ class JAXDFAAnalysis:
             self._poly_detrend_jitted = jit(self._poly_detrend)
             self._calculate_fluctuation_jitted = jit(self._calculate_fluctuation)
             self._fit_scaling_jitted = jit(self._fit_scaling)
+        else:
+            # Fallback to non-jitted versions
+            self._profile_jitted = self._profile
+            self._poly_detrend_jitted = self._poly_detrend
+            self._calculate_fluctuation_jitted = self._calculate_fluctuation
+            self._fit_scaling_jitted = self._fit_scaling
     
     def _profile(self, y: jax.Array) -> jax.Array:
         """Calculate the profile (cumulative sum of centered data)"""
@@ -98,20 +104,17 @@ class JAXDFAAnalysis:
         """Polynomial detrending using JAX"""
         t = jnp.arange(len(x), dtype=jnp.float64)
         # Use lower order if needed
-        o = jnp.minimum(order, len(x) - 1)
+        order = min(order, len(x) - 1)
         
-        def detrend_single_order(order_val):
-            if order_val <= 0:
-                trend = jnp.full_like(x, jnp.mean(x))
-                return trend, x - trend
-            
-            # Manual polynomial fitting for JAX compatibility
-            A = jnp.vander(t, order_val + 1)
-            coeffs = jnp.linalg.lstsq(A, x, rcond=None)[0]
-            trend = jnp.polyval(coeffs, t)
+        if order <= 0:
+            trend = jnp.full_like(x, jnp.mean(x))
             return trend, x - trend
         
-        return detrend_single_order(o)
+        # Manual polynomial fitting for JAX compatibility
+        A = jnp.vander(t, order + 1)
+        coeffs = jnp.linalg.lstsq(A, x, rcond=None)[0]
+        trend = jnp.polyval(coeffs, t)
+        return trend, x - trend
     
     def _calculate_fluctuation(self, profile: jax.Array, scale: int) -> jax.Array:
         """Calculate fluctuation for a given scale"""
@@ -208,6 +211,10 @@ class JAXHiguchiAnalysis:
         if config.enable_jit:
             self._calculate_l_values_jitted = jit(self._calculate_l_values)
             self._fit_fractal_dimension_jitted = jit(self._fit_fractal_dimension)
+        else:
+            # Fallback to non-jitted versions
+            self._calculate_l_values_jitted = self._calculate_l_values
+            self._fit_fractal_dimension_jitted = self._fit_fractal_dimension
     
     def _calculate_l_values(self, y: jax.Array, k_values: jax.Array) -> jax.Array:
         """Calculate L(k) values for Higuchi method"""

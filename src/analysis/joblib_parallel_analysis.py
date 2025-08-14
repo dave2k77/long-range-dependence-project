@@ -48,7 +48,7 @@ class JoblibAnalysisConfig:
 def analyze_dfa_single(data: np.ndarray, **kwargs) -> Dict[str, Any]:
     """Analyze a single dataset using DFA."""
     try:
-        from analysis.dfa_analysis import dfa
+        from .dfa_analysis import dfa
         
         # Default parameters
         min_scale = kwargs.get('min_scale', 4)
@@ -85,7 +85,7 @@ def analyze_dfa_single(data: np.ndarray, **kwargs) -> Dict[str, Any]:
 def analyze_higuchi_single(data: np.ndarray, **kwargs) -> Dict[str, Any]:
     """Analyze a single dataset using Higuchi method."""
     try:
-        from analysis.higuchi_analysis import higuchi_fractal_dimension
+        from .higuchi_analysis import higuchi_fractal_dimension
         
         # Default parameters
         k_min = kwargs.get('k_min', 2)
@@ -122,7 +122,7 @@ def analyze_higuchi_single(data: np.ndarray, **kwargs) -> Dict[str, Any]:
 def analyze_rs_single(data: np.ndarray, **kwargs) -> Dict[str, Any]:
     """Analyze a single dataset using R/S analysis."""
     try:
-        from analysis.rs_analysis import rs_analysis
+        from .rs_analysis import rs_analysis
         
         # Default parameters
         min_scale = kwargs.get('min_scale', 4)

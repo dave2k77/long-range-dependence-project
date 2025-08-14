@@ -85,7 +85,7 @@ from analysis.rs_analysis import rs_analysis
 scales, flucts, dfa_summary = dfa(arfima_signal, order=1)
 scales_rs, rs_values, rs_summary = rs_analysis(arfima_signal)
 
-print(f"DFA Hurst exponent: {dfa_summary.hurst:.3f}")
+print(f"DFA Hurst exponent: {dfa_summary.alpha:.3f}")
 print(f"R/S Hurst exponent: {rs_summary.hurst:.3f}")
 ```
 

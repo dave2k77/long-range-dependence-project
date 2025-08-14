@@ -16,7 +16,7 @@ from typing import Dict, List, Tuple, Optional, Union, Any
 from pathlib import Path
 import pandas as pd
 
-from analysis.higuchi_analysis import HiguchiSummary
+from src.analysis.higuchi_analysis import HiguchiSummary
 
 
 def plot_higuchi_analysis(k_values: np.ndarray,

@@ -27,8 +27,8 @@ import os
 from pathlib import Path
 import warnings
 
-from .model_submission import BaseEstimatorModel, ModelMetadata, ModelValidator, ModelTester, ValidationResult, SubmissionStatus
-from analysis.jax_parallel_analysis import JAXAnalysisConfig, JAXParallelProcessor
+from .model_submission import BaseEstimatorModel, ModelMetadata, ModelValidator, ModelTester, ValidationResult, SubmissionStatus, ModelRegistry
+from src.analysis.jax_parallel_analysis import JAXAnalysisConfig, JAXParallelProcessor
 
 
 @dataclass

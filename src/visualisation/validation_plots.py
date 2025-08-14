@@ -18,7 +18,7 @@ from scipy import stats
 from typing import Dict, List, Tuple, Optional, Union, Any
 from pathlib import Path
 
-from analysis.statistical_validation import (
+from src.analysis.statistical_validation import (
     HypothesisTestResult,
     CrossValidationResult,
     BootstrapResult,

@@ -29,6 +29,24 @@ from src.submission.submission_manager import (
 )
 
 
+@pytest.fixture(autouse=True)
+def clean_registries():
+    """Clean up registries before and after each test"""
+    # Clean up before test
+    if os.path.exists("models/registry.json"):
+        os.remove("models/registry.json")
+    if os.path.exists("datasets/registry.json"):
+        os.remove("datasets/registry.json")
+    
+    yield
+    
+    # Clean up after test
+    if os.path.exists("models/registry.json"):
+        os.remove("models/registry.json")
+    if os.path.exists("datasets/registry.json"):
+        os.remove("datasets/registry.json")
+
+
 class TestEstimatorModel(BaseEstimatorModel):
     """Test implementation of BaseEstimatorModel for testing."""
     
