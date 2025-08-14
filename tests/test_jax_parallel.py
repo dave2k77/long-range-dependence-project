@@ -189,10 +189,12 @@ class TestJAXDFAAnalysis:
         
         results = self.analyzer.analyze_batch(data_batch)
         
-        assert 'alpha' in results
-        assert 'intercept' in results
-        assert 'r_squared' in results
-        assert len(results['alpha']) == 3
+        # Now results is a list of dictionaries
+        assert len(results) == 3
+        assert 'alpha' in results[0]
+        assert 'intercept' in results[0]
+        assert 'r_squared' in results[0]
+        assert all('alpha' in result for result in results)
 
 
 class TestJAXHiguchiAnalysis:
@@ -255,10 +257,12 @@ class TestJAXHiguchiAnalysis:
         
         results = self.analyzer.analyze_batch(data_batch)
         
-        assert 'fractal_dimension' in results
-        assert 'slope' in results
-        assert 'r_squared' in results
-        assert len(results['fractal_dimension']) == 3
+        # Now results is a list of dictionaries
+        assert len(results) == 3
+        assert 'fractal_dimension' in results[0]
+        assert 'slope' in results[0]
+        assert 'r_squared' in results[0]
+        assert all('fractal_dimension' in result for result in results)
 
 
 class TestJAXParallelProcessor:
@@ -316,8 +320,12 @@ class TestJAXModelClasses:
     
     def test_jax_base_estimator_model(self):
         """Test base JAX estimator model"""
-        model = JAXBaseEstimatorModel(jax_config=self.config)
+        # Test that we can't instantiate the abstract base class
+        with pytest.raises(TypeError):
+            model = JAXBaseEstimatorModel(jax_config=self.config)
         
+        # Test that concrete implementations work
+        model = JAXDFAModel(jax_config=self.config)
         assert model.jax_config == self.config
         assert model.key is not None
         assert hasattr(model, 'validate_input')

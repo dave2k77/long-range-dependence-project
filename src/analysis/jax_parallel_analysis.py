@@ -45,6 +45,15 @@ class JAXAnalysisConfig:
     enable_vmap: bool = True
     enable_pmap: bool = False  # Only for multi-device setups
     memory_efficient: bool = True
+    
+    def __post_init__(self):
+        """Validate configuration parameters"""
+        if self.batch_size <= 0:
+            raise ValueError("batch_size must be positive")
+        if self.num_parallel <= 0:
+            raise ValueError("num_parallel must be positive")
+        if self.precision not in ['float32', 'float64']:
+            raise ValueError("precision must be 'float32' or 'float64'")
 
 
 class JAXDeviceManager:
@@ -193,12 +202,17 @@ class JAXDFAAnalysis:
         
         return results
     
-    def analyze_batch(self, data_batch: jax.Array, **kwargs) -> Dict[str, jax.Array]:
+    def analyze_batch(self, data_batch: jax.Array, **kwargs) -> List[Dict[str, jax.Array]]:
         """Analyze a batch of time series in parallel"""
         if self.config.enable_vmap:
-            return vmap(lambda y: self.analyze_single(y, **kwargs))(data_batch)
+            # For vmap, we need to handle the dictionary structure differently
+            # Since JAX can't handle dictionaries in arrays, we'll use a different approach
+            results = vmap(lambda y: self.analyze_single(y, **kwargs))(data_batch)
+            # Convert the structured array back to a list of dictionaries
+            return [dict(zip(results.keys(), [results[key][i] for key in results.keys()])) 
+                   for i in range(len(data_batch))]
         else:
-            return jnp.array([self.analyze_single(y, **kwargs) for y in data_batch])
+            return [self.analyze_single(y, **kwargs) for y in data_batch]
 
 
 class JAXHiguchiAnalysis:
@@ -287,12 +301,17 @@ class JAXHiguchiAnalysis:
         results = self._fit_fractal_dimension_jitted(k_values, l_values)
         return results
     
-    def analyze_batch(self, data_batch: jax.Array, **kwargs) -> Dict[str, jax.Array]:
+    def analyze_batch(self, data_batch: jax.Array, **kwargs) -> List[Dict[str, jax.Array]]:
         """Analyze a batch of time series in parallel"""
         if self.config.enable_vmap:
-            return vmap(lambda y: self.analyze_single(y, **kwargs))(data_batch)
+            # For vmap, we need to handle the dictionary structure differently
+            # Since JAX can't handle dictionaries in arrays, we'll use a different approach
+            results = vmap(lambda y: self.analyze_single(y, **kwargs))(data_batch)
+            # Convert the structured array back to a list of dictionaries
+            return [dict(zip(results.keys(), [results[key][i] for key in results.keys()])) 
+                   for i in range(len(data_batch))]
         else:
-            return jnp.array([self.analyze_single(y, **kwargs) for y in data_batch])
+            return [self.analyze_single(y, **kwargs) for y in data_batch]
 
 
 class JAXParallelProcessor:
@@ -342,11 +361,11 @@ class JAXParallelProcessor:
         results = {}
         for i, name in enumerate(dataset_names):
             results[name] = {
-                'alpha': float(batch_results['alpha'][i]),
-                'intercept': float(batch_results['intercept'][i]),
-                'r_squared': float(batch_results['r_squared'][i]),
-                'scales': np.array(batch_results['scales']),
-                'fluctuations': np.array(batch_results['fluctuations'][i])
+                'alpha': float(batch_results[i]['alpha']),
+                'intercept': float(batch_results[i]['intercept']),
+                'r_squared': float(batch_results[i]['r_squared']),
+                'scales': np.array(batch_results[i]['scales']),
+                'fluctuations': np.array(batch_results[i]['fluctuations'])
             }
         
         return results
@@ -364,11 +383,11 @@ class JAXParallelProcessor:
         results = {}
         for i, name in enumerate(dataset_names):
             results[name] = {
-                'fractal_dimension': float(batch_results['fractal_dimension'][i]),
-                'slope': float(batch_results['slope'][i]),
-                'r_squared': float(batch_results['r_squared'][i]),
-                'k_values': np.array(batch_results['k_values']),
-                'l_values': np.array(batch_results['l_values'][i])
+                'fractal_dimension': float(batch_results[i]['fractal_dimension']),
+                'slope': float(batch_results[i]['slope']),
+                'r_squared': float(batch_results[i]['r_squared']),
+                'k_values': np.array(batch_results[i]['k_values']),
+                'l_values': np.array(batch_results[i]['l_values'])
             }
         
         return results
@@ -392,14 +411,14 @@ class JAXParallelProcessor:
             if method == 'dfa':
                 method_results = self.dfa_analyzer.analyze_batch(bootstrap_samples, **kwargs)
                 results[method] = {
-                    'alphas': method_results['alpha'],
-                    'r_squared': method_results['r_squared']
+                    'alphas': jnp.array([result['alpha'] for result in method_results]),
+                    'r_squared': jnp.array([result['r_squared'] for result in method_results])
                 }
             elif method == 'higuchi':
                 method_results = self.higuchi_analyzer.analyze_batch(bootstrap_samples, **kwargs)
                 results[method] = {
-                    'fractal_dimensions': method_results['fractal_dimension'],
-                    'r_squared': method_results['r_squared']
+                    'fractal_dimensions': jnp.array([result['fractal_dimension'] for result in method_results]),
+                    'r_squared': jnp.array([result['r_squared'] for result in method_results])
                 }
         
         return results

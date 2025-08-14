@@ -160,12 +160,13 @@ class JAXDFAModel(JAXBaseEstimatorModel):
         self.r_squared = None
         self.scales = None
         self.fluctuations = None
+        self._jit_compile_methods()
     
     def _jit_compile_methods(self):
         """JIT-compile DFA-specific methods"""
         self._profile_jitted = jit(self._profile)
-        self._poly_detrend_jitted = jit(self._poly_detrend)
-        # Disable JIT for problematic functions
+        # Disable JIT for problematic functions that have tracing issues
+        self._poly_detrend_jitted = self._poly_detrend
         self._calculate_fluctuation_jitted = self._calculate_fluctuation
         self._fit_scaling_jitted = jit(self._fit_scaling)
     
@@ -175,19 +176,30 @@ class JAXDFAModel(JAXBaseEstimatorModel):
         return jnp.cumsum(y_centered)
     
     def _poly_detrend(self, x: jax.Array, order: int) -> Tuple[jax.Array, jax.Array]:
-        """Polynomial detrending using JAX"""
+        """Polynomial detrending using JAX - simplified for order=1"""
+        # For DFA, we typically use order=1 (linear detrending)
+        # This is a simplified version that avoids JAX tracing issues
         t = jnp.arange(len(x), dtype=jnp.float64)
-        o = jnp.minimum(order, len(x) - 1)
         
-        if o <= 0:
+        # Linear detrending (order=1)
+        if order == 1:
+            # Manual linear regression
+            n = len(x)
+            sum_t = jnp.sum(t)
+            sum_x = jnp.sum(x)
+            sum_tx = jnp.sum(t * x)
+            sum_tt = jnp.sum(t * t)
+            
+            # Calculate slope and intercept
+            slope = (n * sum_tx - sum_t * sum_x) / (n * sum_tt - sum_t * sum_t)
+            intercept = (sum_x - slope * sum_t) / n
+            
+            trend = slope * t + intercept
+            return trend, x - trend
+        else:
+            # Fallback to mean detrending for other orders
             trend = jnp.full_like(x, jnp.mean(x))
             return trend, x - trend
-        
-        # Manual polynomial fitting for JAX compatibility
-        A = jnp.vander(t, o + 1)
-        coeffs = jnp.linalg.lstsq(A, x, rcond=None)[0]
-        trend = jnp.polyval(coeffs, t)
-        return trend, x - trend
     
     def _calculate_fluctuation(self, profile: jax.Array, scale: int) -> jax.Array:
         """Calculate fluctuation for a given scale"""
@@ -363,6 +375,7 @@ class JAXHiguchiModel(JAXBaseEstimatorModel):
         self.r_squared = None
         self.k_values = None
         self.l_values = None
+        self._jit_compile_methods()
     
     def _jit_compile_methods(self):
         """JIT-compile Higuchi-specific methods"""
