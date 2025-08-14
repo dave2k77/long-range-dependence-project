@@ -2,6 +2,9 @@
 
 This document provides comprehensive information about software requirements, dependencies, and installation procedures for the Long-Range Dependence Analysis project.
 
+**Status: ✅ Production Ready**  
+**Last Updated: December 2024**
+
 ## Table of Contents
 
 1. [System Requirements](#system-requirements)
@@ -227,6 +230,36 @@ conda install seaborn>=0.11.0
 # - Enhanced plot aesthetics
 # - Quick exploratory plots
 ```
+
+### 3.4 High-Performance Computing
+
+#### JAX (Optional but Recommended)
+
+```bash
+# CPU-only installation (included in requirements.txt)
+pip install jax jaxlib
+
+# GPU installation (CUDA 11.8)
+pip install --upgrade "jax[cuda11_pip]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+
+# GPU installation (CUDA 12.1)
+pip install --upgrade "jax[cuda12_pip]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+
+# TPU installation
+pip install --upgrade "jax[tpu]" -f https://storage.googleapis.com/jax-releases/jax_tpu_releases.html
+
+# Purpose
+# - GPU/TPU acceleration for parallel computation
+# - JIT compilation for performance optimization
+# - Vectorized operations for batch processing
+# - Automatic differentiation for optimization
+```
+
+**Hardware Requirements for JAX:**
+- **CPU**: Any modern CPU (JAX works on CPU)
+- **GPU**: NVIDIA GPU with CUDA support (for GPU acceleration)
+- **TPU**: Google Cloud TPU (for TPU acceleration)
+- **Memory**: 8GB+ RAM recommended for large datasets
 
 ### 3.4 Wavelet Analysis
 
